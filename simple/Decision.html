@@ -1,0 +1,56 @@
+{{ block title }}
+    Decision
+{{ endblock }}
+
+{{ block content }}
+    <div class="row mb-3">
+        {{ for p in group.get_players }}
+            <div class="col">
+                {{ if p.id_in_group == 1 }}
+                    <b>You</b><br>
+                {{ else }}
+                    <b>Player {{ p.id_in_group }}</b><br>
+                {{ endif }}
+                Stock: <span class="stock_display" id="stock_p{{ p.id_in_group }}">{{ p.stock }}</span><br>
+                <button type="button" class="request_button btn btn-primary {{ if p.id_in_group == player.id_in_group }}visually-hidden{{ endif }}" id="request_p{{ p.id_in_group }}">Request 1 Unit</button>
+            </div>
+        {{ endfor }}
+    </div>
+
+    {{ formfields }}
+    {{ next_button }}
+
+{{ endblock }}
+
+{{ block scripts }}
+<script>
+    const own_id = js_vars.own_id_in_group;
+    const stock_displays = document.getElementsByClassName("stock_display");
+    const request_buttons = document.getElementsByClassName("request_button");
+    
+    for (let button of request_buttons) {
+        button.addEventListener("click", function (event) {
+            const player_id = event.target.id.split('_p')[1];
+            transfer(1, parseInt(player_id), own_id);
+        });
+    }
+    
+    function transfer(units, from, to) {
+        // console.log('transfer', units, from, to);
+        liveSend({
+            units: units,
+            from: from,
+            to: to
+        });
+    }
+    
+    function liveRecv(data) {
+        // console.log(data)
+        if (data['type'] === 'stock_status') {
+            for (let i = 0; i < stock_displays.length; i++) {
+                stock_displays[i].innerHTML = data["data"][i];
+            }
+        }
+    }
+</script>
+{{ endblock }}
