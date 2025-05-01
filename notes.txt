@@ -1,0 +1,17 @@
+# Notes
+
+## Cost calculation
+
+- there should be a cost per time unit for each unit in stock
+- we need to have this animated on the JS side
+- it needs to be kept in sync with the server, if clients count on their own.
+
+- in addition, we calculate the cost on the server and send updates to the client with every stock change
+
+### server side
+- now - last stock update time = storage time
+- storage time * cost per time unit = cost
+- accumulated cost = old_cost + cost
+
+
+### client side

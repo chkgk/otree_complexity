@@ -1,0 +1,217 @@
+{{ block title }}
+    Decision
+{{ endblock }}
+
+{{ block styles }}
+    <style>
+        .outer_box {
+            display: flex;
+            flex-direction: column;
+            height: 300px;
+        }
+        .info_box {
+            flex-grow: 1;
+            overflow: auto;
+            margin-left: 5px;
+            margin-right: 5px;
+            padding-top: 1rem;
+        }
+    </style>
+{{ endblock }}
+
+{{ block content }}
+
+      <div class="row mb-3">
+        <!-- Card 1 -->
+        <div class="col">
+            <div class="card vertical-space">
+                <h4 class="card-header text-center">Predecessor</h4>
+                <div class="card-body outer_box">
+                    <div class="mb-2 text-center">
+                        <button type="button" class="btn btn-primary" id="request_btn">Request a Unit</button>
+                    </div>
+                    <div class="info_box text-center" id="predecessor_info">
+                        <span id="predecesor_transfer_status"></span><br>
+                        <span id="predecessor_transfer_units"></span>
+                    </div>
+                </div>
+                <div class="card-footer text-muted text-center">
+                    >>>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Card 2 -->
+        <div class="col">
+            <div class="card vertical-space">
+                <h4 class="card-header text-center">
+                    You
+                </h4>
+                <div class="card-body outer_box">
+                    <p>
+                        Inventory: <span id="inventory_display">{{ inventory }}</span> units<br>
+                        Balance: <span id="balance_display">{{ balance }}</span> ECU
+                    </p>
+                    <p>
+                        Total earnings: <span id="total_revenue_display">{{ total_revenue }}</span> ECU<br>
+                        Total costs: <span id="total_cost_display">{{ total_cost }}</span> ECU<br>
+                        Total profit: <span id="total_profit_display">{{ total_profit }}</span> ECU
+                    </p>
+                </div>
+                <div class="card-footer text-muted text-center">
+                    >>>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Card 3 -->
+        <div class="col">
+            <div class="card vertical-space">
+                <h4 class="card-header text-center">
+                    Successor
+                </h4>
+                <div class="card-body outer_box">
+                    <div class="info_box text-center" id="successor_info">
+                        <span id="succesor_transfer_status"></span><br>
+                        <span id="successor_transfer_units"></span><br>
+                        <span id="successor_transfer_cash"></span>
+                    </div>
+                </div>
+                <div class="card-footer text-muted text-center">
+                    >>> 
+                </div>
+            </div>
+        </div>
+      </div>
+    {{ formfields }}
+    {{ next_button }}
+
+{{ endblock }}
+
+{{ block scripts }}
+<script src="{{ static 'ringsupplychain/highlighting.js' }}"></script>
+<script>
+    const requestButton = document.getElementById("request_btn");
+    const inventoryDisplay = document.getElementById("inventory_display");
+    const balanceDisplay = document.getElementById("balance_display");
+    const totalCostDisplay = document.getElementById("total_cost_display");
+    const totalRevenueDisplay = document.getElementById("total_revenue_display");
+    const totalProfitDisplay = document.getElementById("total_profit_display");
+    const predecessorInfo = document.getElementById("predecessor_info");
+    const successorInfo = document.getElementById("successor_info");
+    const predecessorTransferStatus = document.getElementById("predecesor_transfer_status");
+    const predecessorTransferUnits = document.getElementById("predecessor_transfer_units");
+    const successorTransferStatus = document.getElementById("succesor_transfer_status");
+    const successorTransferUnits = document.getElementById("successor_transfer_units");
+    const successorTransferCash = document.getElementById("successor_transfer_cash");
+    
+    let mydata = {
+        "inventory": js_vars.inventory,
+        "balance": js_vars.balance,
+        "total_cost": js_vars.total_cost,
+        "total_revenue": js_vars.total_revenue,
+        "total_profit": js_vars.total_profit
+    };
+    
+    function timeout_request_button(timeout_seconds) {
+        requestButton.disabled = true;
+        requestButton.innerHTML = "Please Wait";
+        setTimeout(function() {
+            requestButton.disabled = false;
+            requestButton.innerHTML = "Request a Unit";
+        }, timeout_seconds * 1000);
+    }
+    
+    function update_receiver_data(data) {
+        mydata.balance = data['to_balance'];
+        mydata.inventory = data['to_inventory'];
+        mydata.total_cost = data['to_cost'];
+        mydata.total_revenue = data['to_revenue'];
+        mydata.total_profit = data['to_profit'];
+        update_display();
+    }
+    
+    function update_sender_data(data) {
+        mydata.balance = data['from_balance'];
+        mydata.inventory = data['from_inventory'];
+        mydata.total_cost = data['from_cost'];
+        mydata.total_revenue = data['from_revenue'];
+        mydata.total_profit = data['from_profit'];
+        update_display();
+    }
+    
+    function update_display() {
+        inventoryDisplay.innerHTML = mydata.inventory;
+        balanceDisplay.innerHTML = mydata.balance;
+        totalCostDisplay.innerHTML = mydata.total_cost;
+        totalRevenueDisplay.innerHTML = mydata.total_revenue;
+        totalProfitDisplay.innerHTML = mydata.total_profit;
+    }
+
+    function live_update_status(data) {
+        // I receive the unit
+        if (data['to_player'] === js_vars.own_id_in_group) {
+            update_receiver_data(data);
+            highlight_predecessor(
+                data['transferred'], 
+                data['units'], 
+                js_vars.info_highlight_timeout_seconds
+            );
+            
+        }
+        // I send the unit
+        if (data['from_player'] === js_vars.own_id_in_group) {
+            update_sender_data(data)
+            highlight_successor(
+                data['transferred'],
+                data['units'],
+                data['cash'],
+                js_vars.info_highlight_timeout_seconds
+            );
+        }
+    }
+    
+    function send_request(units) {
+        liveSend({
+            type: 'request',
+            data: {
+                units: units,
+            }
+        });
+    }
+    
+    function send_init() {
+        liveSend({
+            type: 'init',
+        });
+    }
+    
+    function liveRecv(data) {
+        if (data['type'] === 'status') {
+            live_update_status(data['data']);
+        }
+    }
+    
+    function recalculate_balances() {
+        let cost = mydata.inventory * js_vars.inventory_unit_cost_per_second;
+        mydata.balance -= cost;
+        mydata.total_cost += cost;
+        mydata.total_profit = mydata.total_revenue - mydata.total_cost;
+    }
+    
+    requestButton.addEventListener("click", function () {
+        send_request(1);
+        timeout_request_button(js_vars.request_button_timeout_seconds);
+    });
+    
+    // when ready
+    document.addEventListener("DOMContentLoaded", function() {
+        send_init();
+    });
+        
+    window.setInterval(function () {
+        recalculate_balances();
+        update_display();
+    }, 1000);
+</script>
+{{ endblock scripts }}

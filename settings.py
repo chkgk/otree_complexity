@@ -2,10 +2,11 @@ from os import environ
 
 SESSION_CONFIGS = [
     dict(
-        name='simple',
-        app_sequence=['simple'],
-        num_demo_participants=5,
-    ),
+        name="ringsupplychain",
+        display_name="Ring Supply Chain Demo - 3 Players",
+        app_sequence=["ringsupplychain"],
+        num_demo_participants=3, 
+    )
 ]
 
 # if you set a property in SESSION_CONFIG_DEFAULTS, it will be inherited by all configs
@@ -14,7 +15,7 @@ SESSION_CONFIGS = [
 # e.g. self.session.config['participation_fee']
 
 SESSION_CONFIG_DEFAULTS = dict(
-    real_world_currency_per_point=1.00, participation_fee=0.00, doc=""
+    real_world_currency_per_point=0.02, participation_fee=0.00, doc=""
 )
 
 PARTICIPANT_FIELDS = []
@@ -25,8 +26,9 @@ SESSION_FIELDS = []
 LANGUAGE_CODE = 'en'
 
 # e.g. EUR, GBP, CNY, JPY
-REAL_WORLD_CURRENCY_CODE = 'USD'
+REAL_WORLD_CURRENCY_CODE = 'EUR'
 USE_POINTS = True
+POINTS_CUSTOM_NAME = 'ECU'
 
 ADMIN_USERNAME = 'admin'
 # for security, best to set admin password in an environment variable
