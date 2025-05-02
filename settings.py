@@ -6,7 +6,7 @@ SESSION_CONFIGS = [
         display_name="Ring Supply Chain Demo - 3 Players",
         app_sequence=["ringsupplychain"],
         num_demo_participants=3, 
-    )
+    ),
 ]
 
 # if you set a property in SESSION_CONFIG_DEFAULTS, it will be inherited by all configs

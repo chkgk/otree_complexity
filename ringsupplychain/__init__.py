@@ -11,12 +11,16 @@ class C(BaseConstants):
     PLAYERS_PER_GROUP = 3
     NUM_ROUNDS = 1
     
+    # Timeouts
     DECISION_TIMEOUT_SECONDS = 300  # 5 min
     REQUEST_TIMEOUT_SECONDS = 1
     INFO_HIGHLIGHT_TIMEOUT_SECONDS = 1
     
-    CASH_ENDOWMENT = cu(30)
-    UNIT_ENDOWMENT = 2
+    # Endowments   
+    CASH_ENDOWMENT_PLAYER = { i: cu(30) for i in range(1, PLAYERS_PER_GROUP + 1) }
+    UNIT_ENDOWMENT_PLAYER = { i: 2 for i in range(1, PLAYERS_PER_GROUP + 1) }
+    
+    # Prices & Costs
     PRICE_PER_UNIT = cu(10)
     INVENTORY_UNIT_COST_PER_SECOND = cu(1)
 
@@ -30,8 +34,8 @@ class Group(BaseGroup):
 
 
 class Player(BasePlayer):
-    inventory = models.IntegerField(initial=C.UNIT_ENDOWMENT)
-    balance = models.CurrencyField(initial=C.CASH_ENDOWMENT)
+    inventory = models.IntegerField()
+    balance = models.CurrencyField()
     
     last_inventory_update = models.FloatField()
     
@@ -55,8 +59,16 @@ class Requests(ExtraModel):
     transferred = models.BooleanField()
 
 # FUNCTIONS
+def get_endowments(player):
+    return C.UNIT_ENDOWMENT_PLAYER[player.id_in_group], C.CASH_ENDOWMENT_PLAYER[player.id_in_group]
+
+def creating_session(subsession):
+    for player in subsession.get_players():
+        initial_inventory, initial_balance = get_endowments(player)
+        player.inventory = initial_inventory
+        player.balance = initial_balance
+
 def live_request(player, data):
-    print(data)
     take_from = player.get_predecessor()
     units = data['units']
 
