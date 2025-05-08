@@ -2,11 +2,82 @@ from os import environ
 
 SESSION_CONFIGS = [
     dict(
-        name="ringsupplychain",
-        display_name="Ring Supply Chain Demo - 3 Players",
+        name="intro",
+        display_name="Introduction",
+        app_sequence=["intro"],
+        num_demo_participants=1,
+    ),
+    dict(
+        name="training",
+        display_name="Training Round",
+        app_sequence=["training"],
+        num_demo_participants=1,
+        players_per_group=1,
+        training_cost_per_second=2,
+        training_price_per_unit=10,
+        training_initial_stock=2,
+        training_initial_cash=30,
+        training_round_seconds=600,
+        training_show_chain=False
+    ),
+    dict(
+        name="ringsupplychain_3_sym",
+        display_name="RSC, 3 Players, 2 rounds, cost 2, inventory (2, 2, 2), cash (30, 30, 30), time (300, 300), no chain",
         app_sequence=["ringsupplychain"],
         num_demo_participants=3, 
+        players_per_group=3,
+        cost_per_second=2,
+        price_per_unit=10,
+        initial_stock=[2, 2, 2],
+        initial_cash=[30, 30, 30], 
+        round_seconds=[300, 300],
+        show_chain=False
     ),
+    dict(
+        name="ringsupplychain_3_sym_chain",
+        display_name="RSC, 3 Players, 2 rounds, cost 2, inventory (2, 2, 2), cash (30, 30, 30), time (300, 300), chain visible",
+        app_sequence=["ringsupplychain"],
+        num_demo_participants=3, 
+        players_per_group=3,
+        cost_per_second=2,
+        price_per_unit=10,
+        initial_stock=[2, 2, 2],
+        initial_cash=[30, 30, 30], 
+        round_seconds=[300, 300],
+        show_chain=True
+    ),
+    dict(
+        name="ringsupplychain_5_asym",
+        display_name="RSC, 5 Players, 2 rounds, cost 2, inventory (0, 5, 0, 5, 0), cash (30, 30, 30, 30 , 30), time (300, 300), no chain",
+        app_sequence=["ringsupplychain"],
+        num_demo_participants=3,
+        players_per_group=3,
+        cost_per_second=2,
+        price_per_unit=10,
+        initial_stock=[0, 5, 0, 5, 0],
+        initial_cash=[30, 30, 30, 30, 30], 
+        round_seconds=[300, 300],
+        show_chain=False
+    ),
+    dict(
+        name="ringsupplychain_10_asym",
+        display_name="RSC, 10 Players, 2 rounds, cost 2, inventory sym 2, cash sym 30, time 300, chain visible",
+        app_sequence=["ringsupplychain"],
+        num_demo_participants=20,
+        players_per_group=10,
+        cost_per_second=2,
+        price_per_unit=10,
+        initial_stock=[2 for _ in range(10)],
+        initial_cash=[30 for _ in range(10)],
+        round_seconds=[300, 300],
+        show_chain=True
+    ),
+    dict(
+        name="questionnaire",
+        display_name="Final Questionnaire",
+        app_sequence=["questionnaires"],
+        num_demo_participants=1,
+    )
 ]
 
 # if you set a property in SESSION_CONFIG_DEFAULTS, it will be inherited by all configs

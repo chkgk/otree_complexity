@@ -1,0 +1,62 @@
+{{ block title }}
+    Instructions
+{{ endblock }}
+
+{{ block content }}
+    <h4>Environment</h4>
+    <p>
+        You act in a closed ring system with several participants, having a <em>predecessor</em> and a <em>successor</em>. The number of participants in the ring is unknown to you.
+    </p>
+
+    <h4>Situation</h4> 
+    <p>
+        At every moment, you can request one unit of a virtual good from your predecessor. You collect a unit only if your predecessor has one in their inventory. Simultaneously, your successor can request a unit from you.
+    </p>
+
+    <h4>Inventory</h4>
+    <p>
+        Your inventory stores your units; it can be zero or positive. 
+    </p>
+    <ul>
+        <li>You start with two units in your inventory.</li>
+        <li>Every time you collect a unit from your predecessor, your inventory increases by one.</li>
+        <li>Every time your successor collects a unit from you, your inventory decreases by one.</li>
+    </ul>
+
+    <h4>Your Actions</h4>
+    <p>
+        To request a unit, click REQUEST in the left box. When you collect it, the box turns green for a second; otherwise, it turns red. Your inventory adjusts accordingly.
+    </p>
+
+    <h4>Your Successor's action</h4>
+    <p>
+        Your successor’s request has the same effect on the right box. When he/she collects it, the box turns green for a second; otherwise, it turns red. 
+    </p>
+
+    <h4>Costs and Benefits</h4>
+    <ul>
+        <li>You start with an endowment of 30 ECUs.</li> 
+        <li>Every time your successor collects a unit from you, you earn 10 ECUs.</li>
+        <li>Every second, you must pay 1 ECU for each unit in your inventory.</li>
+        <li>Your ECU balance adjusts accordingly. Technically, it can go negative, but you can also recover.</li>
+    </ul>
+
+    <h4>Round</h4>
+    <p>
+        A round ends after five minutes = 300 seconds. You will have 8 separate rounds with a fixed group.
+    </p>
+
+    <h4>Training</h4>
+    <p>
+        To get comfortable with the situation, you have a two-minute round without payments.
+    </p>
+
+    <h4>Payment</h4>
+    <p>
+        We pay one round. A random draw determines which one. For that round the ECUs in your balance will be converted to Euros at a rate 50 ECUs = 1 Euro.
+    </p>
+    {{ formfields }}
+    {{ next_button }}
+{{ endblock }}
+
+

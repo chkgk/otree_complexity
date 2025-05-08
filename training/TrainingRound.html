@@ -1,5 +1,5 @@
 {{ block title }}
-    Decision
+    Training Round
 {{ endblock }}
 
 {{ block styles }}
@@ -21,7 +21,7 @@
 
 {{ block content }}
 
-      <div class="row mb-3">
+    <div class="row mb-3">
         <!-- Card 1 -->
         <div class="col">
             <div class="card vertical-space">
@@ -85,13 +85,29 @@
       </div>
 
     {{ if show_chain }}<svg width="100%" viewBox="0 0 1000 400" xmlns="http://www.w3.org/2000/svg" id="id_circle"></svg>{{ endif }}
-
-
+    
     {{ formfields }}
     {{ next_button }}
 {{ endblock }}
 
+
 {{ block scripts }}
+<script>
+    function boxMullerTransform() {
+        const u1 = Math.random();
+        const u2 = Math.random();
+        
+        const z0 = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
+        const z1 = Math.sqrt(-2.0 * Math.log(u1)) * Math.sin(2.0 * Math.PI * u2);
+        
+        return { z0, z1 };
+    }
+    
+    function getNormallyDistributedRandomNumber(mean, stddev) {
+        const { z0, _ } = boxMullerTransform();
+        return z0 * stddev + mean;
+    }
+</script>
 <script src="{{ static 'chain/highlighting.js' }}"></script>
 <script>
     const requestButton = document.getElementById("request_btn");
@@ -125,22 +141,23 @@
         }, timeout_seconds * 1000);
     }
     
-    function update_receiver_data(data) {
-        mydata.balance = data['to_balance'];
-        mydata.inventory = data['to_inventory'];
-        mydata.total_cost = data['to_cost'];
-        mydata.total_revenue = data['to_revenue'];
-        mydata.total_profit = data['to_profit'];
+    function update_receiver_data(transferred, units) {
+        if (transferred) {
+            mydata.inventory += units;
+        } 
         update_display();
     }
     
-    function update_sender_data(data) {
-        mydata.balance = data['from_balance'];
-        mydata.inventory = data['from_inventory'];
-        mydata.total_cost = data['from_cost'];
-        mydata.total_revenue = data['from_revenue'];
-        mydata.total_profit = data['from_profit'];
-        update_display();
+    function get_request() {
+        if (mydata.inventory > 0) {
+            mydata.inventory -= 1;
+            mydata.total_revenue += js_vars.inventory_unit_price;
+            mydata.balance += js_vars.inventory_unit_price;
+            mydata.total_profit = mydata.total_revenue - mydata.total_cost;
+            update_display();
+            return true;
+        }
+        return false;
     }
     
     function update_display() {
@@ -185,41 +202,23 @@
             from_player_r.setAttribute("fill", color);
             to_player_l.setAttribute("fill", color);
             window.setTimeout(function() {
-                from_player_r.setAttribute("fill", "white");
-                to_player_l.setAttribute("fill", "white");
+                from_player_r.setAttribute("fill", "none");
+                to_player_l.setAttribute("fill", "none");
             }, js_vars.info_highlight_timeout_seconds * 1000);
         }
     }
     
     function send_request(units) {
-        liveSend({
-            type: 'request',
-            data: {
-                units: units,
-            }
-        });
+        let transferred = Math.random() < js_vars.transfer_probability;
+        update_receiver_data(transferred, units);
+        highlight_predecessor(
+            transferred, 
+            units, 
+            js_vars.info_highlight_timeout_seconds
+        );
     }
     
-    function send_init() {
-        liveSend({
-            type: 'init',
-        });
-    }
-    
-    function liveRecv(data) {
-        if (data['type'] === 'status') {
-            live_update_status(data['data']);
-        }
-        if (data['type'] === 'init_response') {
-            mydata.balance = data['data']['balance'];
-            mydata.inventory = data['data']['inventory'];
-            mydata.total_cost = data['data']['cost'];
-            mydata.total_revenue = data['data']['revenue'];
-            mydata.total_profit = data['data']['profit'];
-            update_display();
-        }
-    }
-    
+
     function recalculate_balances() {
         let cost = mydata.inventory * js_vars.inventory_unit_cost_per_second;
         mydata.balance -= cost;
@@ -232,22 +231,34 @@
         timeout_request_button(js_vars.request_button_timeout_seconds);
     });
     
-    // when ready
-    document.addEventListener("DOMContentLoaded", function() {
-        send_init();
-    });
-        
     window.setInterval(function () {
         recalculate_balances();
         update_display();
     }, 1000);
+    
+    
+    function random_request(mean, stdev) {
+        let random = getNormallyDistributedRandomNumber(mean, stdev);
+        window.setTimeout(function() {
+            let result = get_request();
+            highlight_successor(
+                result, 
+                1, 
+                js_vars.inventory_unit_price,
+                js_vars.info_highlight_timeout_seconds
+            );
+            random_request(mean, stdev);
+        }, random * 1000);
+    }
+    
+    random_request(3, 0.5);
 </script>
 
 <script src="{{ static 'chain/draw.js' }}"></script>
 <script>
     const circle = document.getElementById("id_circle");
     if (js_vars.show_chain) {
-        draw_rows(circle, js_vars.num_players, js_vars.own_id_in_group);
+        draw_rows(circle, js_vars.num_players);
     }
 </script>
 

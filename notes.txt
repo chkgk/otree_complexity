@@ -1,17 +1,35 @@
-# Notes
+Im Fokus stehen folgende Treatment-Effekte:
 
-## Cost calculation
+Puffergrößen (Inventory Buffers / Initial Inventory)
+Es soll möglich sein, Runden mit initial inventory 1, 2 und 3 zu starten (also symmetrisch verteilt, aber flexibel anpassbar zwischen den Sessions). Diese Variable ist zentral für das Experiment, da wir untersuchen möchten, wie sich die Pufferhöhe auf das Systemverhalten und dessen Stabilität auswirkt.
+- Done.
 
-- there should be a cost per time unit for each unit in stock
-- we need to have this animated on the JS side
-- it needs to be kept in sync with the server, if clients count on their own.
+Anzahl der Agent:innen
+Um Koordination unter komplexen Bedingungen zu analysieren, wäre es ideal, auch Sessions mit größeren Gruppen (z.B. 15 oder mehr Personen) zu ermöglichen. Mir ist bewusst, dass große Gruppen entsprechend viele Teilnehmer:innen gleichzeitig benötigen und wir dann insgesamt weniger Sessions durchführen können – aber für die Analyse von Koordination in komplexen Systemen wäre das extrem wertvoll.
+- works. needs more testing.
 
-- in addition, we calculate the cost on the server and send updates to the client with every stock change
+Lagerhaltungskosten (Inventory Costs)
+Anstelle des üblichen Werts von Inventory Cost = 1, möchten wir auch mit sehr niedrigen Kosten arbeiten (z.B. 0.05), um zu testen, ob das die Teilnehmer:innen dazu motiviert, größere Puffer zu halten.
+- Done.
 
-### server side
-- now - last stock update time = storage time
-- storage time * cost per time unit = cost
-- accumulated cost = old_cost + cost
+Transparenz
+Ein Punkt, den ich im Meeting vergessen hatte, aber den ich für besonders wichtig halte: In einigen Treatments sollen die Teilnehmer:innen den vollständigen Ring sehen können – sowohl die Lagerbestände als auch das Klickverhalten der anderen Agent:innen. Diese Informationen sollten auf einen Blick erfassbar sein, um echte Koordination zu ermöglichen (und sehr übersichtlich und simpel). Ich vermute, das ist nicht ganz trivial zu programmieren – gib gern Bescheid, ob das grundsätzlich machbar wäre, sonst bespreche ich es nochmal mit Utz.
 
+Initialverteilung und endogene Wahl des Puffers
+Wir möchten zum einen asymmetrische Verteilungen testen (z.B. 0, x, 0, x, 0, x bei 6 Personen). Die konkreten Werte stimme ich noch mit Utz ab, da wir auch die statistische Auswertbarkeit berücksichtigen müssen (z.B. wäre eine faire Verteilung bei 5 Personen mit insgesamt 10 Einheiten nicht so einfach umsetzbar wenn nur 3 Personen die 10 Einheiten bekommen…).
+- Done.
 
-### client side
+ 
+Zum anderen – und ich weiß, dass es dazu in der Gruppe auch Kritik gibt – halte ich es für sehr interessant, den Teilnehmer:innen in späteren Runden die Wahl ihres eigenen Puffers zu Beginn (t = 0) zu ermöglichen. Beispielsweise könnten nach drei festen Runden zwei Runden mit selbstgewählter Startverteilung folgen.
+Hinweis für später
+
+Die Idee, dass beim Klicken gleich mehrere Items (Pakete) übertragen werden, ist für eine spätere Version vorgesehen und für den Piloten noch nicht relevant – es sei denn, es wäre technisch bereits jetzt einfach umsetzbar, das als flexible Option anzulegen (z.B. dass ein Paket = 1 Produkt ist). Du weißt hier vermutlich am besten, was sinnvoll ist 😊
+ 
+Zusammenfassung:
+Variable Start-Puffergrößen (1–3 Einheiten)
+Optional größere Gruppen (z.B. 15+ Agent:innen), wenn umsetzbar
+Lagerhaltungskosten variabel einstellbar (inkl. sehr niedriger Werte)
+Transparenz-Treatment: vollständige und übersichtliche Anzeige von Lager & Klickverhalten
+Asymmetrische Anfangsverteilungen (Details folgen)
+Endogene Wahl des Startpuffers nach einigen Runden
+Paketweise Klickübertragung (optional, späterer Entwicklungsschritt)
