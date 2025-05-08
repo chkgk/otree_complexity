@@ -135,6 +135,7 @@ def live_inventory(player):
             'cost': player.total_cost,
             'revenue': player.total_revenue,
             'profit': player.total_profit,
+            'chain_inventory': {p.id_in_group: p.inventory for p in player.group.get_players()},
         }
     }
     

@@ -206,6 +206,14 @@
         });
     }
     
+    function update_inventories(data) {
+        for (let player_id in data) {
+            let inventory = data[player_id];
+            let inventory_display = document.getElementById("p" + player_id + "_text");
+            inventory_display.textContent = inventory;
+        }
+    }
+    
     function liveRecv(data) {
         if (data['type'] === 'status') {
             live_update_status(data['data']);
@@ -216,6 +224,7 @@
             mydata.total_cost = data['data']['cost'];
             mydata.total_revenue = data['data']['revenue'];
             mydata.total_profit = data['data']['profit'];
+            update_inventories(data['data']["chain_inventory"]);
             update_display();
         }
     }
