@@ -60,6 +60,19 @@ SESSION_CONFIGS = [
         show_chain=False
     ),
     dict(
+        name="ringsupplychain_5_asym_chain",
+        display_name="RSC, 5 Players, 2 rounds, cost 2, inventory (0, 5, 0, 5, 0), cash (30, 30, 30, 30 , 30), time (300, 300), chain visible",
+        app_sequence=["ringsupplychain"],
+        num_demo_participants=5,
+        players_per_group=5,
+        cost_per_second=2,
+        price_per_unit=10,
+        initial_stock=[0, 5, 0, 5, 0],
+        initial_cash=[30, 30, 30, 30, 30], 
+        round_seconds=[300, 300],
+        show_chain=True
+    ),
+    dict(
         name="ringsupplychain_10_asym",
         display_name="RSC, 10 Players, 2 rounds, cost 2, inventory sym 2, cash sym 30, time 300, chain visible",
         app_sequence=["ringsupplychain"],

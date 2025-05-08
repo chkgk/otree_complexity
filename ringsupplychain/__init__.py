@@ -272,11 +272,8 @@ class Decision(Page):
         if data['type'] == 'init':
             if player.field_maybe_none('last_inventory_update') is None:
                 player.last_inventory_update = time.time()
-            else:
-                # send update
-                return live_inventory(player)
-            return None
-        
+            return live_inventory(player)
+                        
         if data['type'] == 'request':
             return live_request(player, data['data'])
         
