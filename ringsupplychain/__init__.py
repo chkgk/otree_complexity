@@ -2,6 +2,8 @@ from otree.api import *
 import time
 import itertools
 import json
+import math
+from collections import defaultdict
 
 doc = """
 Your app description
@@ -39,6 +41,7 @@ class Player(BasePlayer):
     balance = models.CurrencyField()
     
     last_inventory_update = models.FloatField()
+    init_time = models.FloatField()
     
     total_cost = models.CurrencyField(initial=0)
     total_revenue = models.CurrencyField(initial=0)
@@ -52,13 +55,17 @@ class Player(BasePlayer):
     
 class Requests(ExtraModel):
     created = models.FloatField()
-    session_code = models.StringField()
+    session = models.Link(Subsession)
     group_id = models.IntegerField()
     round = models.IntegerField()
     requested_from_id = models.IntegerField()
     requested_by_id = models.IntegerField()
     units = models.IntegerField()
     transferred = models.BooleanField()
+    from_inventory = models.IntegerField()
+    from_balance = models.CurrencyField()
+    to_inventory = models.IntegerField()
+    to_balance = models.CurrencyField()
 
 # FUNCTIONS
 def creating_session(subsession):
@@ -195,17 +202,20 @@ def live_request(player, data):
         
         transferred = True
         
-
-    # Create a failed request record
+    # request record
     Requests.create(
         created=current_time,
-        session_code=take_from_player.session.code,
+        session=take_from_player.subsession,
         group_id=group.id_in_subsession,
         round=player.round_number,
         requested_from_id=take_from_player.id_in_group,
         requested_by_id=give_to_player.id_in_group,
         units=units,
-        transferred=transferred
+        transferred=transferred,
+        from_inventory=take_from_player.inventory,
+        from_balance=take_from_player.balance,
+        to_inventory=give_to_player.inventory,
+        to_balance=give_to_player.balance,
     )
     
     resp = {
@@ -270,8 +280,11 @@ class Decision(Page):
     @staticmethod
     def live_method(player, data):        
         if data['type'] == 'init':
+            current_time = time.time()
             if player.field_maybe_none('last_inventory_update') is None:
-                player.last_inventory_update = time.time()
+                player.last_inventory_update = current_time
+            if player.field_maybe_none('init_time') is None:
+                player.init_time = current_time
             return live_inventory(player)
                         
         if data['type'] == 'request':
@@ -281,7 +294,66 @@ class Decision(Page):
         
 
 class Results(Page):
-    pass
+    def js_vars(player):
+        subs = player.subsession
+
+        reqs = Requests.filter(
+            session=subs,
+            group_id=player.group.id_in_subsession,
+            round=player.round_number,
+            transferred=True
+        )
+        own_reqs = [req for req in reqs if req.requested_by_id == player.id_in_group or req.requested_from_id == player.id_in_group]
+
+        init_time = math.floor(player.init_time)
+        end_time = math.ceil(init_time + subs.round_seconds)
+    
+        batches_sold = defaultdict(list)
+        batches_received = defaultdict(list)
+        for req in own_reqs:
+            base_second = math.floor(req.created - init_time)
+            if req.requested_from_id == player.id_in_group:
+                # i sold something
+                batches_sold[base_second].append(req)
+            elif req.requested_by_id == player.id_in_group:
+                # i received something
+                batches_received[base_second].append(req)
+            
+        balance = list()
+        inventory = list()
+        
+        initial_cash = json.loads(subs.initial_cash)[player.id_in_group - 1]
+        initial_stock = json.loads(subs.initial_stock)[player.id_in_group - 1]
+        
+        for sec in range(subs.round_seconds + 1):
+            if sec == 0:
+                bal = initial_cash
+                inv = initial_stock
+            else:
+                bal = balance[sec-1]
+                inv = inventory[sec-1]
+
+            bal -= subs.cost_per_second * inv
+            
+            for req in batches_sold[sec]:
+                bal += req.units * subs.price_per_unit
+
+            for req in batches_received[sec]:
+                inv += req.units
+                
+            balance.append(bal)
+            inventory.append(inv)
+            
+
+        return {
+            'own_id_in_group': player.id_in_group,
+            'init_time': init_time,
+            'end_time': end_time,
+            'round_seconds': subs.round_seconds,
+            'balance': balance,
+            'inventory': inventory,
+        }
+        
 
 
 page_sequence = [JointStart, Decision, Results]
@@ -289,14 +361,18 @@ page_sequence = [JointStart, Decision, Results]
 
 # EXPORTS
 def custom_export(players):
-    yield ['time', 'session', 'round', 'group', 'requested_from', 'requested_by', 'units', 'transferred']
+    yield ['time', 'subsession', 'round', 'group', 'requested_from', 'requested_by', 'units', 'transferred', 'from_inventory', 'from_balance', 'to_inventory', 'to_balance']
     for request in Requests.filter():
         yield [request.created, 
-               request.session_code,
+               request.session.code,
                request.round,
                request.group_id,
                request.requested_from_id,
                request.requested_by_id,
                request.units,
-               request.transferred
+               request.transferred,
+               request.from_inventory,
+               request.from_balance,
+               request.to_inventory,
+               request.to_balance
         ]
