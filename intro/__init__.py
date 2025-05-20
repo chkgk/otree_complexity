@@ -38,7 +38,8 @@ class Player(BasePlayer):
     future_research_use = models.BooleanField(widget=widgets.CheckboxInput)
     agree_to_participate = models.BooleanField(widget=widgets.CheckboxInput)
     confirm_info_reviewed_again = models.BooleanField(widget=widgets.CheckboxInput)
-    instructor_code = models.StringField()
+    instructor_code_1 = models.IntegerField()
+    instructor_code_2 = models.IntegerField()
 
 
 # FUNCTIONS
@@ -71,11 +72,16 @@ class ConsentRadboud(Page):
         'future_research_use',
         'agree_to_participate',
         'confirm_info_reviewed_again',
-        'instructor_code'
+        'instructor_code_1'
     ]
     
-def instructor_code_error_message(player, value):
-    if value != "17":
+def instructor_code_1_error_message(player, value):
+    if value != 17:
+        return "Please enter the correct instructor code."
+    return None
+
+def instructor_code_2_error_message(player, value):
+    if value != 6:
         return "Please enter the correct instructor code."
     return None
 
@@ -99,10 +105,11 @@ class Introduction(Page):
     pass
 
 class InstructionsRound(Page):
-    pass
+    form_model = 'player'
+    form_fields = ['instructor_code_2']
 
 page_sequence = [
-    FigureDemo, 
+    # FigureDemo, 
     ConsentRadboud, 
     Introduction, 
     InstructionsRound
