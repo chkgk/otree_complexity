@@ -32,6 +32,8 @@ class Subsession(BaseSubsession):
     round_seconds = models.IntegerField()
     show_chain = models.BooleanField(initial=False)
     room_name = models.StringField()
+    auto_play = models.BooleanField(initial=False)
+
 
 
 class Group(BaseGroup):
@@ -78,6 +80,7 @@ def creating_session(subsession):
     price_per_unit = subsession.session.config.get('price_per_unit', None)
     round_seconds = subsession.session.config.get('round_seconds', None)
     show_chain = subsession.session.config.get('show_chain', False)
+    auto_play = subsession.session.config.get('auto_play', False)
     
     if any(var is None for var in [players_per_group, initial_stock, initial_cash, cost_per_second, price_per_unit, round_seconds, show_chain]):
         raise ValueError("session not configured correctly")
@@ -97,6 +100,7 @@ def creating_session(subsession):
     subsession.price_per_unit = price_per_unit
     subsession.round_seconds = round_seconds[subsession.round_number - 1]
     subsession.show_chain = show_chain
+    subsession.auto_play = auto_play
     
     player_list = subsession.get_players()
 
@@ -119,14 +123,18 @@ def creating_session(subsession):
     # assign endowments to players
     for player in player_list:
         player.inventory = initial_stock[player.id_in_group - 1]
-        player.balance = initial_stock[player.id_in_group - 1]
+        player.balance = initial_cash[player.id_in_group - 1]
 
 def live_inventory(player):
     # get current time
     current_time = time.time()
 
     # get time delta
-    time_delta = current_time - player.last_inventory_update
+    last_inventory_time = player.field_maybe_none('last_inventory_update')
+    if last_inventory_time is None:
+        last_inventory_time = current_time
+    time_delta = current_time - last_inventory_time
+    
 
     # calculate cost
     old_inventory = player.inventory
@@ -156,7 +164,7 @@ def live_inventory(player):
         }
     }
     
-    return {player.id_in_subsession: resp}
+    return {player.id_in_group: resp}
 
 def live_request(player, data):
     take_from = player.get_predecessor()
@@ -262,7 +270,45 @@ def common_vars_for_template(player):
         'num_players': subs.players_per_group,
         'show_chain': subs.show_chain,
         'DEBUG': player.session.config.get('DEBUG', False),
+        'auto_play': subs.auto_play,
     }
+
+def finalize_round(group):
+    subs = group.subsession
+    round_seconds = subs.round_seconds
+    cost_per_second = subs.cost_per_second
+    for player in group.get_players():
+        # first we figure out when the last update of the inventory took place relative to the expected end of round time
+        init_time = player.field_maybe_none('init_time')
+        if init_time is None:
+            init_time = 0
+        end_time = init_time + round_seconds
+        last_update = player.field_maybe_none('last_inventory_update')
+        if last_update is None:
+            last_update = 0
+        time_to_end_of_round = end_time - last_update
+        
+        # print('init_time', init_time)
+        # print('end_time', end_time)
+        # print('last_update', last_update)
+        # print('time_to_end_of_round', time_to_end_of_round)
+        # if there was time left between last update and the expected end of round, we need to account for costs.
+        if time_to_end_of_round > 0:
+            # calculate cost
+            old_inventory = player.inventory
+            cost = time_to_end_of_round * cost_per_second * old_inventory
+
+            # update total cost, balance, and profit
+            player.total_cost += cost
+            player.balance -= cost
+            player.total_profit = player.total_revenue - player.total_cost
+            
+            # print('old_inventory', old_inventory)
+            # print('cost', cost)
+            # print('total_cost', player.total_cost)
+            # print('balance', player.balance)
+            # print('total_profit', player.total_profit)
+        
 
 def close_room(subsession):
     room = subsession.session.get_room()
@@ -302,6 +348,7 @@ class Decision(Page):
     @staticmethod
     def live_method(player, data):        
         if data['type'] == 'init':
+            print('init by player', player.id_in_group, "group", player.group.id_in_subsession)
             current_time = time.time()
             if player.field_maybe_none('last_inventory_update') is None:
                 player.last_inventory_update = current_time
@@ -314,6 +361,8 @@ class Decision(Page):
         
         return None
         
+class ResultsWait(WaitPage):
+    after_all_players_arrive = 'finalize_round'
 
 class Results(Page):
     def vars_for_template(player):
@@ -412,7 +461,14 @@ class ResultsFigure(Page):
         }
         
 
-page_sequence = [JointStart, Decision, Results, BTRWait, BackToRoom]
+page_sequence = [
+    JointStart, 
+    Decision, 
+    ResultsWait, 
+    Results, 
+    BTRWait, 
+    BackToRoom
+]
 
 
 # EXPORTS
@@ -420,7 +476,7 @@ def custom_export(players):
     yield ['time', 'subsession', 'round', 'group', 'requested_from', 'requested_by', 'units', 'transferred', 'from_inventory', 'from_balance', 'to_inventory', 'to_balance']
     for request in Requests.filter():
         yield [request.created, 
-               request.session.code,
+               request.session.session.code,
                request.round,
                request.group_id,
                request.requested_from_id,

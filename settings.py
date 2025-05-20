@@ -31,7 +31,36 @@ SESSION_CONFIGS = [
         initial_stock="2, 2, 2, 2, 2",
         initial_cash="30, 30, 30, 30, 30", 
         round_seconds=300,
-        show_chain=False
+        show_chain=False,
+        auto_play=False
+    ),
+    dict(
+        name="testing",
+        display_name="RSC, 3 Players, 1 round, cost 1, stock sym 2, cash sym 30, time 300, no chain, auto play",
+        app_sequence=["ringsupplychain"],
+        num_demo_participants=3, 
+        players_per_group=3,
+        cost_per_second=1,
+        price_per_unit=10,
+        initial_stock="2, 2, 2",
+        initial_cash="30, 30, 30", 
+        round_seconds=300,
+        show_chain=False,
+        auto_play=True,
+    ),
+    dict(
+        name="testing2",
+        display_name="RSC, 6 Players, 1 round, cost 1, stock sym 2, cash sym 30, time 300, no chain, auto play",
+        app_sequence=["ringsupplychain"],
+        num_demo_participants=6, 
+        players_per_group=3,
+        cost_per_second=1,
+        price_per_unit=10,
+        initial_stock="2, 2, 2",
+        initial_cash="30, 30, 30", 
+        round_seconds=300,
+        show_chain=False,
+        auto_play=False,
     ),
     # dict(
     #     name="ringsupplychain_5_pilot",
@@ -155,6 +184,8 @@ ADMIN_PASSWORD = environ.get('OTREE_ADMIN_PASSWORD')
 DEMO_PAGE_INTRO_HTML = """ """
 
 SECRET_KEY = '7220483092201'
+
+BROWSER_COMMAND = "/Users/christian/chrome.sh"
 
 # URL from heroku labs runtime-dyno-metadata
 BASE_URL = environ.get('HEROKU_APP_DEFAULT_DOMAIN_NAME', 'localhost:8000')

@@ -88,13 +88,28 @@
 
 
     {{ formfields }}
-    {{ next_button }}
+    {{ if DEBUG }} {{ next_button }} {{ endif }}
 {{ endblock }}
 
 {{ block scripts }}
 <script src="{{ static 'chain/highlighting.js' }}"></script>
 <script src="{{ static 'chain/draw.js' }}"></script>
-
+<script>
+    function boxMullerTransform() {
+        const u1 = Math.random();
+        const u2 = Math.random();
+        
+        const z0 = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
+        const z1 = Math.sqrt(-2.0 * Math.log(u1)) * Math.sin(2.0 * Math.PI * u2);
+        
+        return { z0, z1 };
+    }
+    
+    function getNormallyDistributedRandomNumber(mean, stddev) {
+        const { z0, _ } = boxMullerTransform();
+        return z0 * stddev + mean;
+    }
+</script>
 <script>
     const requestButton = document.getElementById("request_btn");
     const inventoryDisplay = document.getElementById("inventory_display");
@@ -261,6 +276,18 @@
     window.addEventListener('load', function () {
         send_init();
     });
+    
+    function auto_play_request(mean, stdev) {
+        let random = getNormallyDistributedRandomNumber(mean, stdev);
+        window.setTimeout(function() {
+            send_request(1);
+            auto_play_request(mean, stdev)
+        }, random * 1000);
+    }
+    
+    if (js_vars.auto_play) {
+        auto_play_request(2, 0.5);
+    }
     
 </script>
 
