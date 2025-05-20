@@ -55,6 +55,14 @@ def creating_session(subsession):
             show_chain]):
         raise ValueError("session not configured correctly")
 
+    # if it is not a list, make it a list
+    if type(round_seconds) is not list:
+        round_seconds = [round_seconds] * C.NUM_ROUNDS
+
+    # transform string list into actual list
+    initial_stock = [i.strip() for i in initial_stock.split(",")]
+    initial_cash = [i.strip() for i in initial_cash.split(",")]
+
     subsession.players_per_group = players_per_group
     subsession.initial_stock = initial_stock
     subsession.initial_cash = initial_cash

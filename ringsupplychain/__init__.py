@@ -4,6 +4,7 @@ import itertools
 import json
 import math
 from collections import defaultdict
+from settings import BASE_URL
 
 doc = """
 Your app description
@@ -13,7 +14,7 @@ Your app description
 class C(BaseConstants):
     NAME_IN_URL = 'ringsupplychain'
     PLAYERS_PER_GROUP = None
-    NUM_ROUNDS = 2
+    NUM_ROUNDS = 1
     
     # Timeouts
     DECISION_TIMEOUT_SECONDS = 300  # 5 min
@@ -79,6 +80,14 @@ def creating_session(subsession):
     
     if any(var is None for var in [players_per_group, initial_stock, initial_cash, cost_per_second, price_per_unit, round_seconds, show_chain]):
         raise ValueError("session not configured correctly")
+    
+    # if it is not a list, make it a list
+    if type(round_seconds) is not list:
+        round_seconds = [round_seconds] * C.NUM_ROUNDS
+    
+    # transform string list into actual list
+    initial_stock = [i.strip() for i in initial_stock.split(",")]
+    initial_cash = [i.strip() for i in initial_cash.split(",")]
     
     subsession.players_per_group = players_per_group
     subsession.initial_stock = json.dumps(initial_stock)
@@ -251,6 +260,7 @@ def common_vars_for_template(player):
         'total_profit': player.total_profit,
         'num_players': subs.players_per_group,
         'show_chain': subs.show_chain,
+        'DEBUG': player.session.config.get('DEBUG', False),
     }
 
 # PAGES
@@ -292,8 +302,12 @@ class Decision(Page):
         
         return None
         
-
 class Results(Page):
+    def vars_for_template(player):
+        return common_vars_for_template(player)
+        
+
+class ResultsFigure(Page):
     def js_vars(player):
         subs = player.subsession
 
@@ -354,9 +368,13 @@ class Results(Page):
             'inventory': inventory,
         }
         
+class BackToRoom(Page):
+    def vars_for_template(player):
+        return {
+            'room_url': f"http://{BASE_URL}/room/room1/",
+        }
 
-
-page_sequence = [JointStart, Decision, Results]
+page_sequence = [JointStart, Decision, Results, BackToRoom]
 
 
 # EXPORTS

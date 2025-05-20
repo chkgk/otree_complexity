@@ -3,63 +3,18 @@
 {{ endblock }}
 
 {{ block content }}
-    <div id="container" style="width:100%; height:400px;"></div>
-    
+    <div>
+        <p>
+            Inventory: <span id="inventory_display">{{ inventory }}</span> units<br>
+            Balance: <span id="balance_display">{{ balance|to2 }}</span>
+        </p>
+        <p>
+            Total earnings: <span id="total_revenue_display">{{ total_revenue|to2 }}</span><br>
+            Total costs: <span id="total_cost_display">{{ total_cost|to2 }}</span><br>
+            Total profit: <span id="total_profit_display">{{ total_profit|to2 }}</span>
+        </p>
+    </div>    
     {{ formfields }}
     {{ next_button }}
 {{ endblock }}
-
-{{ block scripts }}
-    <script src="https://code.highcharts.com/highcharts.js"></script>
-    <script src="{{ static 'chain/hs_align.js' }}"></script>
-    <script>
-       
-        //const rawData = js_vars.changes;
-        //const inventorySeries = rawData.map(point => [point.t, point.inventory]);
-        //const balanceSeries = rawData.map(point => [point.t, point.balance]);
-        
-        const inventorySeries = js_vars.inventory;
-        const balanceSeries = js_vars.balance;
-        
-        Highcharts.chart('container', {
-          chart: {
-              alignThresholds: true,
-            type: 'line'
-          },
-          title: {
-            text: 'Inventory and Cash Balance Over Time'
-          },
-          xAxis: {
-            title: { text: 'Time (t)' }
-          },
-          yAxis: [
-            {
-              title: {
-                text: 'Inventory'
-              },
-                allowDecimals: false,
-                tickInterval: 1
-            },
-            {
-              title: {
-                text: 'Cash Balance'
-              },
-              opposite: true
-            }
-          ],
-          series: [
-            {
-              name: 'Inventory',
-              data: inventorySeries,
-              yAxis: 0,
-            },
-            {
-              name: 'Cash Balance',
-              data: balanceSeries,
-              yAxis: 1
-            }
-          ]
-        });
-    </script>
-{{ endblock scripts }}
 
