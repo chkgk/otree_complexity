@@ -1,0 +1,29 @@
+{{ block title }}
+    Consent
+{{ endblock }}
+
+{{ block content }}
+    <p>Please consent for each of the following statements to go on with the experiment.</p>
+
+    {{ formfield 'confirm_read_understood' label="I confirm that I have read, heard, and understood the information about the experiment. I have had the opportunity to consider the information and ask questions, and I have had these answered satisfactorily." }}
+
+    {{ formfield 'voluntary_participation' label="I understand that my participation is voluntary and that I am free to withdraw at any time without giving any reason; withdrawal will result in no payoffs for the participation." }}
+    
+    {{ formfield 'data_access_by_authorities' label="I understand that regulatory authorities could request and look at data collected during this study. I give my permission for any authority, with a legal right of access, to view data that might identify me. Any promises of confidentiality provided by the researcher will be respected." }}
+    
+    {{ formfield 'data_anonymity' label="I understand that my identity cannot be connected to the decisions I made in the dataset." }}
+    
+    {{ formfield 'data_publication' label="I understand that the results of this study may be published and/or presented at meetings or academic conferences. I allow my anonymous data, which does not identify me, to be disseminated in this way." }}
+    
+    {{ formfield 'future_research_use' label="I agree that the data I contribute will be retained for any future research that a Research Ethics Committee has approved." }}
+    
+    {{ formfield 'agree_to_participate' label="I agree to take part in this experiment." }}
+    
+    {{ formfield 'confirm_info_reviewed_again' label="I confirm that I have read, heard, and understood the information about the experiment. I have had the opportunity to consider the information and ask questions, and I have had these answered satisfactorily." }}
+        
+
+    {{ formfield 'instructor_code' label='Please raise your questions now; otherwise, enter the code provided by the instructor:' }}
+    {% next_button %}
+{{ endblock }}
+
+
