@@ -31,6 +31,7 @@ class Subsession(BaseSubsession):
     price_per_unit = models.FloatField()
     round_seconds = models.IntegerField()
     show_chain = models.BooleanField(initial=False)
+    room_name = models.StringField()
 
 
 class Group(BaseGroup):
@@ -88,7 +89,7 @@ def creating_session(subsession):
     # transform string list into actual list
     initial_stock = [i.strip() for i in initial_stock.split(",")]
     initial_cash = [i.strip() for i in initial_cash.split(",")]
-    
+        
     subsession.players_per_group = players_per_group
     subsession.initial_stock = json.dumps(initial_stock)
     subsession.initial_cash = json.dumps(initial_cash)
@@ -263,9 +264,20 @@ def common_vars_for_template(player):
         'DEBUG': player.session.config.get('DEBUG', False),
     }
 
+def close_room(subsession):
+    room = subsession.session.get_room()
+    if room is not None:
+        room.set_session(None)
+        
+def register_room(subsession):
+    room = subsession.session.get_room()
+    room_name = room.name if room is not None else None
+    subsession.room_name = room_name
+
 # PAGES
 class JointStart(WaitPage):
-    pass
+    wait_for_all_groups = True
+    after_all_players_arrive = 'register_room'
 
 class Decision(Page):
     def get_timeout_seconds(player):
@@ -302,9 +314,40 @@ class Decision(Page):
         
         return None
         
+
 class Results(Page):
     def vars_for_template(player):
-        return common_vars_for_template(player)
+        cv = common_vars_for_template(player)
+
+        room = player.session.get_room()
+        room_url = None
+        if room is not None:
+            target_room = 'room1' if room.name == 'room2' else 'room2'
+            room_url = f"http://{BASE_URL}/room/{target_room}/"
+
+        return {
+            'room_url': room_url,
+            **cv
+        }
+
+class BTRWait(WaitPage):
+    wait_for_all_groups = True
+    after_all_players_arrive = 'close_room'
+
+class BackToRoom(Page):
+    def is_displayed(player):
+        room = player.subsession.field_maybe_none('room_name')
+        return room is not None
+    
+    def vars_for_template(player):
+        room = player.subsession.field_maybe_none('room_name')
+        room_url = None
+        if room is not None:
+            room_url = f"http://{BASE_URL}/room/room1/"
+            
+        return {
+            'room_url': room_url,
+        }
         
 
 class ResultsFigure(Page):
@@ -368,13 +411,8 @@ class ResultsFigure(Page):
             'inventory': inventory,
         }
         
-class BackToRoom(Page):
-    def vars_for_template(player):
-        return {
-            'room_url': f"http://{BASE_URL}/room/room1/",
-        }
 
-page_sequence = [JointStart, Decision, Results, BackToRoom]
+page_sequence = [JointStart, Decision, Results, BTRWait, BackToRoom]
 
 
 # EXPORTS

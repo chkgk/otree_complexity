@@ -28,8 +28,8 @@ SESSION_CONFIGS = [
         players_per_group=5,
         cost_per_second=1,
         price_per_unit=10,
-        initial_stock="2, 2, 2",
-        initial_cash="30, 30, 30", 
+        initial_stock="2, 2, 2, 2, 2",
+        initial_cash="30, 30, 30, 30, 30", 
         round_seconds=300,
         show_chain=False
     ),
@@ -124,7 +124,7 @@ ROOMS = [
     dict(
         name='room1',
         display_name='Room 1'
-    ),
+    )
 ]
 
 # if you set a property in SESSION_CONFIG_DEFAULTS, it will be inherited by all configs
