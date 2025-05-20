@@ -1,5 +1,5 @@
 from otree.api import *
-import json
+from settings import BASE_URL
 
 doc = """
 Your app description
@@ -11,9 +11,14 @@ class C(BaseConstants):
     PLAYERS_PER_GROUP = None
     NUM_ROUNDS = 1
     
-    TRAINING_SECONDS = 120
+    TRAINING_SECONDS = 90
+    TRAINING_START_DELAY_SECONDS = 15
+    TRAINING_LEAVE_SECONDS = 30
+    TRAINING_TOTAL_SECONDS = TRAINING_START_DELAY_SECONDS + TRAINING_SECONDS
+
     REQUEST_TIMEOUT_SECONDS = 0
     INFO_HIGHLIGHT_TIMEOUT_SECONDS = 1
+
 
 class Subsession(BaseSubsession):
     players_per_group = models.IntegerField()
@@ -47,28 +52,20 @@ def creating_session(subsession):
     initial_cash = subsession.session.config.get('training_initial_cash', None)
     cost_per_second = subsession.session.config.get('training_cost_per_second', None)
     price_per_unit = subsession.session.config.get('training_price_per_unit', None)
-    round_seconds = subsession.session.config.get('training_round_seconds', None)
+    # round_seconds = subsession.session.config.get('training_round_seconds', None)
     show_chain = subsession.session.config.get('training_show_chain', False)
 
     if any(var is None for var in
-           [players_per_group, initial_stock, initial_cash, cost_per_second, price_per_unit, round_seconds,
+           [players_per_group, initial_stock, initial_cash, cost_per_second, price_per_unit,
             show_chain]):
         raise ValueError("session not configured correctly")
-
-    # if it is not a list, make it a list
-    if type(round_seconds) is not list:
-        round_seconds = [round_seconds] * C.NUM_ROUNDS
-
-    # transform string list into actual list
-    initial_stock = [i.strip() for i in initial_stock.split(",")]
-    initial_cash = [i.strip() for i in initial_cash.split(",")]
 
     subsession.players_per_group = players_per_group
     subsession.initial_stock = initial_stock
     subsession.initial_cash = initial_cash
     subsession.cost_per_second = cost_per_second
     subsession.price_per_unit = price_per_unit
-    subsession.round_seconds = round_seconds
+    subsession.round_seconds = C.TRAINING_SECONDS
     subsession.show_chain = show_chain
 
     player_list = subsession.get_players()
@@ -97,7 +94,7 @@ class TrainingIntro(Page):
 
 class TrainingRound(Page):
     def get_timeout_seconds(player):
-        return player.subsession.round_seconds
+        return C.TRAINING_TOTAL_SECONDS
 
     @staticmethod
     def js_vars(player):
@@ -105,6 +102,9 @@ class TrainingRound(Page):
             'own_id_in_group': player.id_in_group,
             'request_button_timeout_seconds': C.REQUEST_TIMEOUT_SECONDS,
             'info_highlight_timeout_seconds': C.INFO_HIGHLIGHT_TIMEOUT_SECONDS,
+            'training_start_delay_seconds': C.TRAINING_START_DELAY_SECONDS,
+            'training_seconds': C.TRAINING_SECONDS,
+            'allow_training_leave_seconds': C.TRAINING_LEAVE_SECONDS,
             'inventory_unit_cost_per_second': player.subsession.cost_per_second,
             'transfer_probability': 0.5,
             'inventory_unit_price': player.subsession.price_per_unit,

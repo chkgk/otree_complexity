@@ -21,6 +21,14 @@
 
 {{ block content }}
 
+    <div class="start-timer alert alert-info">
+        <p>The training round starts in:
+            <span style="font-weight: bold">
+                <span class="start-timer__time-left"></span>
+            </span>
+        </p>
+    </div>
+
     <div class="row mb-3">
         <!-- Card 1 -->
         <div class="col">
@@ -49,13 +57,13 @@
                 </h4>
                 <div class="card-body outer_box">
                     <p>
-                        Inventory: <span id="inventory_display">{{ inventory }}</span> units<br>
-                        Balance: <span id="balance_display">{{ balance|to2 }}</span> ECU
+                        Inventory: <span id="inventory_display">{{ inventory }} units</span><br>
+                        Balance: <span id="balance_display">{{ balance|to2 }}</span>
                     </p>
                     <p>
-                        Total earnings: <span id="total_revenue_display">{{ total_revenue|to2 }}</span> ECU<br>
-                        Total costs: <span id="total_cost_display">{{ total_cost|to2 }}</span> ECU<br>
-                        Total profit: <span id="total_profit_display">{{ total_profit|to2 }}</span> ECU
+                        Total earnings: <span id="total_revenue_display">{{ total_revenue|to2 }}</span><br>
+                        Total costs: <span id="total_cost_display">{{ total_cost|to2 }}</span><br>
+                        Total profit: <span id="total_profit_display">{{ total_profit|to2 }}</span>
                     </p>
                 </div>
                 <div class="card-footer text-muted text-center">
@@ -123,6 +131,43 @@
     const successorTransferStatus = document.getElementById("succesor_transfer_status");
     const successorTransferUnits = document.getElementById("successor_transfer_units");
     const successorTransferCash = document.getElementById("successor_transfer_cash");
+    const oTreeTimer = document.getElementsByClassName('otree-timer')[0];
+    const startTimer = document.getElementsByClassName('start-timer')[0];
+    const nextButton = document.getElementsByClassName("otree-btn-next")[0];
+    
+    // setup next button
+    nextButton.style.display = "none";
+    nextButton.classList.remove("btn-primary");
+    nextButton.classList.add("btn-danger");
+    nextButton.innerText = "Leave the training round";
+    
+    window.setTimeout(function() {
+        nextButton.style.display = "block";
+    }, (js_vars.training_start_delay_seconds + js_vars.allow_training_leave_seconds) * 1000);
+    
+    // setup timers
+    let currentDate = new Date();
+    let remainingTimeoutSeconds = {{ view.remaining_timeout_seconds()|json }};
+    let remainingSeconds = remainingTimeoutSeconds - js_vars.training_seconds;
+    let milliseconds = Math.floor(remainingSeconds * 1000);
+    if (remainingSeconds > 0) {
+        oTreeTimer.style.display = "none";
+        $('.start-timer__time-left').countdown(currentDate.valueOf() + milliseconds)
+        .on('update.countdown', function (event) {
+            // %-N is "Total count of minutes till the end, non-padded"
+            // %S is seconds left
+            var format = '%-N:%S';
+            $(this).html(event.strftime(format))
+        })
+        .on('finish.countdown', function () {
+            startTimer.style.display = "none";
+            oTreeTimer.style.display = "block";
+            start_game();
+        });
+    } else {
+        startTimer.style.display = "none";
+        start_game();
+    }
     
     let mydata = {
         "inventory": js_vars.inventory,
@@ -131,6 +176,15 @@
         "total_revenue": js_vars.total_revenue,
         "total_profit": js_vars.total_profit
     };
+    
+    function start_game() {
+        random_request(2, 0.5)
+        
+        window.setInterval(function () {
+            recalculate_balances();
+            update_display();
+        }, 1000);
+    }
     
     function timeout_request_button(timeout_seconds) {
         requestButton.disabled = true;
@@ -161,11 +215,11 @@
     }
     
     function update_display() {
-        inventoryDisplay.innerHTML = mydata.inventory;
-        balanceDisplay.innerHTML = mydata.balance.toFixed(2);
-        totalCostDisplay.innerHTML = mydata.total_cost.toFixed(2);
-        totalRevenueDisplay.innerHTML = mydata.total_revenue.toFixed(2);
-        totalProfitDisplay.innerHTML = mydata.total_profit.toFixed(2);
+        inventoryDisplay.innerHTML = mydata.inventory + " units";
+        balanceDisplay.innerHTML = mydata.balance.toFixed(2) + " ECU";
+        totalCostDisplay.innerHTML = mydata.total_cost.toFixed(2) + " ECU";
+        totalRevenueDisplay.innerHTML = mydata.total_revenue.toFixed(2) + " ECU";
+        totalProfitDisplay.innerHTML = mydata.total_profit.toFixed(2) + " ECU";
     }
 
     function live_update_status(data) {
@@ -231,11 +285,6 @@
         timeout_request_button(js_vars.request_button_timeout_seconds);
     });
     
-    window.setInterval(function () {
-        recalculate_balances();
-        update_display();
-    }, 1000);
-    
     
     function random_request(mean, stdev) {
         let random = getNormallyDistributedRandomNumber(mean, stdev);
@@ -251,7 +300,7 @@
         }, random * 1000);
     }
     
-    random_request(2, 0.5);
+    
 </script>
 
 <script src="{{ static 'chain/draw.js' }}"></script>
