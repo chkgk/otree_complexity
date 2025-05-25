@@ -25,11 +25,13 @@ class Subsession(BaseSubsession):
     cost_per_second = models.FloatField()
     price_per_unit = models.FloatField()
     round_seconds = models.IntegerField()
+    total_seconds = models.IntegerField()
     show_chain = models.BooleanField(initial=False)
     room_name = models.StringField()
     auto_play = models.BooleanField(initial=False)
     request_timeout_seconds = models.IntegerField()
     info_highlight_timeout_seconds = models.IntegerField()
+    countdown_seconds = models.IntegerField()
 
 
 
@@ -81,8 +83,10 @@ def creating_session(subsession):
     auto_play = sess.config.get('auto_play', False)
     request_timeout_seconds = sess.config.get('request_timeout_seconds', None)
     info_highlight_timeout_seconds = sess.config.get('info_highlight_timeout_seconds', None)
+    countdown_seconds = sess.config.get('countdown_seconds', 5)
+    total_seconds = countdown_seconds + round_seconds
     
-    if any(var is None for var in [players_per_group, initial_stock, initial_cash, cost_per_second, price_per_unit, round_seconds, show_chain, request_timeout_seconds, info_highlight_timeout_seconds]):
+    if any(var is None for var in [players_per_group, initial_stock, initial_cash, cost_per_second, price_per_unit, round_seconds, show_chain, request_timeout_seconds, info_highlight_timeout_seconds, countdown_seconds]):
         raise ValueError("session not configured correctly")
     
     # if it is not a list, make it a list
@@ -103,6 +107,8 @@ def creating_session(subsession):
     subsession.auto_play = auto_play
     subsession.request_timeout_seconds = request_timeout_seconds
     subsession.info_highlight_timeout_seconds = info_highlight_timeout_seconds
+    subsession.total_seconds = total_seconds
+    subsession.countdown_seconds = countdown_seconds
     
     player_list = subsession.get_players()
 
@@ -273,8 +279,10 @@ def common_vars_for_template(player):
         'show_chain': subs.show_chain,
         'auto_play': subs.auto_play,
         'round_seconds': subs.round_seconds,
+        'total_seconds': subs.total_seconds,
         'request_button_timeout_seconds': subs.request_timeout_seconds,
         'info_highlight_timeout_seconds': subs.info_highlight_timeout_seconds,
+        'countdown_seconds': subs.countdown_seconds,
         'DEBUG': DEBUG
     }
 
@@ -347,7 +355,7 @@ class JointStart(WaitPage):
 
 class Decision(Page):
     def get_timeout_seconds(player):
-        return player.subsession.round_seconds
+        return player.subsession.total_seconds
     
     @staticmethod
     def js_vars(player):

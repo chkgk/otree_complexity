@@ -21,6 +21,14 @@
 
 {{ block content }}
 
+    <div class="start-timer alert alert-info">
+        <p>The training round starts in:
+            <span style="font-weight: bold">
+                <span class="start-timer__time-left"></span>
+            </span>
+        </p>
+    </div>
+
       <div class="row mb-3">
         <!-- Card 1 -->
         <div class="col">
@@ -50,12 +58,12 @@
                 <div class="card-body outer_box">
                     <p>
                         Inventory: <span id="inventory_display">{{ inventory }}</span> units<br>
-                        Balance: <span id="balance_display">{{ balance|to2 }}</span> ECU
+                        Balance: <span id="balance_display">{{ balance|to2 }}</span>
                     </p>
                     <p>
-                        Total earnings: <span id="total_revenue_display">{{ total_revenue|to2 }}</span> ECU<br>
-                        Total costs: <span id="total_cost_display">{{ total_cost|to2 }}</span> ECU<br>
-                        Total profit: <span id="total_profit_display">{{ total_profit|to2 }}</span> ECU
+                        Total earnings: <span id="total_revenue_display">{{ total_revenue|to2 }}</span><br>
+                        Total costs: <span id="total_cost_display">{{ total_cost|to2 }}</span><br>
+                        Total profit: <span id="total_profit_display">{{ total_profit|to2 }}</span>
                     </p>
                 </div>
                 <div class="card-footer text-muted text-center">
@@ -127,6 +135,33 @@
     const successorTransferStatus = document.getElementById("succesor_transfer_status");
     const successorTransferUnits = document.getElementById("successor_transfer_units");
     const successorTransferCash = document.getElementById("successor_transfer_cash");
+    const oTreeTimer = document.getElementsByClassName('otree-timer')[0];
+    const startTimer = document.getElementsByClassName('start-timer')[0];
+    
+    // setup timers
+    requestButton.disabled = true;
+    let currentDate = new Date();
+    let remainingTimeoutSeconds = {{ view.remaining_timeout_seconds()|json }};
+    let remainingSeconds = remainingTimeoutSeconds - js_vars.round_seconds;
+    let milliseconds = Math.floor(remainingSeconds * 1000);
+    if (remainingSeconds > 0) {
+        oTreeTimer.style.display = "none";
+        $('.start-timer__time-left').countdown(currentDate.valueOf() + milliseconds)
+        .on('update.countdown', function (event) {
+            // %-N is "Total count of minutes till the end, non-padded"
+            // %S is seconds left
+            var format = '%-N:%S';
+            $(this).html(event.strftime(format))
+        })
+        .on('finish.countdown', function () {
+            startTimer.style.display = "none";
+            oTreeTimer.style.display = "block";
+            start_game();
+        });
+    } else {
+        startTimer.style.display = "none";
+        start_game();
+    }
     
     let mydata = {
         "inventory": js_vars.inventory,
@@ -258,28 +293,6 @@
         mydata.total_profit = mydata.total_revenue - mydata.total_cost;
     }
     
-    requestButton.addEventListener("click", function () {
-        send_request(1);
-        timeout_request_button(js_vars.request_button_timeout_seconds);
-    });
-    
-    // when ready
-    
-    window.setInterval(function () {
-        recalculate_balances();
-        update_display();
-    }, 1000);
-
-
-    const circle = document.getElementById("id_circle");
-    if (js_vars.show_chain) {
-        draw_rows(circle, js_vars.num_players, js_vars.own_id_in_group);
-    }
-
-    window.addEventListener('load', function () {
-        send_init();
-    });
-    
     function auto_play_request(mean, stdev) {
         let random = getNormallyDistributedRandomNumber(mean, stdev);
         window.setTimeout(function() {
@@ -288,9 +301,33 @@
         }, random * 1000);
     }
     
-    if (js_vars.auto_play) {
-        auto_play_request(2, 0.5);
+    // when ready
+    function start_game() {
+        requestButton.disabled = false;
+        
+        window.setInterval(function () {
+            recalculate_balances();
+            update_display();
+        }, 1000);
+        
+        if (js_vars.auto_play) {
+            auto_play_request(2, 0.5);
+        }
     }
+    
+    const circle = document.getElementById("id_circle");
+    if (js_vars.show_chain) {
+        draw_rows(circle, js_vars.num_players, js_vars.own_id_in_group);
+    }
+    
+    requestButton.addEventListener("click", function () {
+        send_request(1);
+        timeout_request_button(js_vars.request_button_timeout_seconds);
+    });
+
+    // initialize
+    send_init();
+
     
 </script>
 

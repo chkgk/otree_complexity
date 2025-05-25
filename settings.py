@@ -3,10 +3,11 @@ from os import environ
 GAME_CONFIG = dict(
     request_timeout_seconds=0,
     info_highlight_timeout_seconds=1,
+    countdown_seconds=5,
     cost_per_second=5,
     price_per_unit=100,
     round_seconds=180,
-    num_rounds=4,
+    num_rounds=4,  # not active yet
     payment_link="https://example.com/",
 )
 
