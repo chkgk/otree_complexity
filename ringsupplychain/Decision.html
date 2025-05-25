@@ -88,7 +88,10 @@
 
 
     {{ formfields }}
-    {{ if DEBUG }} {{ next_button }} {{ endif }}
+    {{ if DEBUG }} 
+        <p class="text-danger"> BUTTON IN DEBUG MODE ONLY:</p>
+        {{ next_button }} 
+    {{ endif }}
 {{ endblock }}
 
 {{ block scripts }}

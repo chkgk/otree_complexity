@@ -1,11 +1,80 @@
 from os import environ
 
+GAME_CONFIG = dict(
+    request_timeout_seconds=0,
+    info_highlight_timeout_seconds=1,
+    cost_per_second=5,
+    price_per_unit=100,
+    round_seconds=180,
+    num_rounds=4,
+    payment_link="https://example.com/",
+)
+
+TRAINING_CONFIG = dict(
+    training_cost_per_second=5,
+    training_price_per_unit=100,
+    training_initial_stock=2,
+    training_initial_cash=300,
+    training_round_seconds=90,
+    training_transfer_probability=0.5,
+    training_start_delay_seconds=15,
+    training_leave_seconds=15,
+    training_request_timeout_seconds=0,
+    training_info_highlight_timeout_seconds=1,
+)
+
+INV_LO_A = dict(
+    players_per_group=5,
+    initial_stock="1, 0, 0, 0, 0",
+    initial_cash="300, 300, 300, 300, 300", 
+    show_chain=False,
+)
+
+INV_HI_A = dict(
+    players_per_group=5,
+    initial_stock="10, 0, 0, 0, 0",
+    initial_cash="300, 300, 300, 300, 300", 
+    show_chain=False,
+)
+
+INV_HI_S = dict(
+    players_per_group=5,
+    initial_stock="2, 2, 2, 2, 2",
+    initial_cash="300, 300, 300, 300, 300", 
+    show_chain=False,
+)
+
+INV_HI_S_INFO = dict(
+    players_per_group=5,
+    initial_stock="2, 2, 2, 2, 2",
+    initial_cash="300, 300, 300, 300, 300", 
+    show_chain=True,
+)
+
 SESSION_CONFIGS = [
     dict(
-        name="intro",
-        display_name="Introduction",
+        name="intro_invisible",
+        display_name="Introduction - Ring not Visible",
         app_sequence=["intro"],
         num_demo_participants=1,
+        players_per_group=5,
+        initial_cash="30, 30, 30, 30, 30",
+        initial_stock="2, 2, 2, 2, 2",
+        show_chain=False,
+        **GAME_CONFIG,
+        **TRAINING_CONFIG
+    ),
+    dict(
+        name="intro_visible",
+        display_name="Introduction - Ring Visible",
+        app_sequence=["intro"],
+        num_demo_participants=1,
+        players_per_group=5,
+        initial_cash="300, 300, 300, 300, 300",
+        initial_stock="2, 2, 2, 2, 2",
+        show_chain=True,
+        **GAME_CONFIG,
+        **TRAINING_CONFIG
     ),
     dict(
         name="training",
@@ -13,139 +82,64 @@ SESSION_CONFIGS = [
         app_sequence=["training"],
         num_demo_participants=1,
         players_per_group=1,
-        training_cost_per_second=2,
-        training_price_per_unit=10,
-        training_initial_stock=2,
-        training_initial_cash=30,
-        training_round_seconds=120,
-        training_show_chain=False
+        **TRAINING_CONFIG
     ),
     dict(
-        name="ringsupplychain_3_pilot",
-        display_name="RSC, 5 Players, 1 round, cost 1, inventory sym 2, cash sym 30, time 30 always, no chain",
+        name="inv_lo_a",
+        display_name="INV_LO_A (1,0,0,0,0 units; 300ecu; no info)",
         app_sequence=["ringsupplychain"],
         num_demo_participants=5, 
-        players_per_group=5,
-        cost_per_second=1,
-        price_per_unit=10,
-        initial_stock="2, 2, 2, 2, 2",
-        initial_cash="30, 30, 30, 30, 30", 
-        round_seconds=300,
-        show_chain=False,
-        auto_play=False
+        **INV_LO_A,
+        **GAME_CONFIG,
+        **TRAINING_CONFIG,
+        auto_play=False,
     ),
     dict(
-        name="testing",
-        display_name="RSC, 3 Players, 1 round, cost 1, stock sym 2, cash sym 30, time 300, no chain, auto play",
+        name="inv_hi_a",
+        display_name="INV_HI_A (10,0,0,0,0 units; 300ecu; no info)",
         app_sequence=["ringsupplychain"],
-        num_demo_participants=3, 
-        players_per_group=3,
-        cost_per_second=1,
-        price_per_unit=10,
-        initial_stock="2, 2, 2",
-        initial_cash="30, 30, 30", 
-        round_seconds=300,
-        show_chain=False,
+        num_demo_participants=5, 
+        **INV_HI_A,
+        **GAME_CONFIG,
+        **TRAINING_CONFIG,
         auto_play=True,
     ),
     dict(
-        name="testing2",
-        display_name="RSC, 6 Players, 1 round, cost 1, stock sym 2, cash sym 30, time 300, no chain, auto play",
+        name="inv_hi_s",
+        display_name="INV_HI_S (sym 2 units; 300ecu; no info)",
         app_sequence=["ringsupplychain"],
-        num_demo_participants=6, 
-        players_per_group=3,
-        cost_per_second=1,
-        price_per_unit=10,
-        initial_stock="2, 2, 2",
-        initial_cash="30, 30, 30", 
-        round_seconds=300,
-        show_chain=False,
+        num_demo_participants=5, 
+        **INV_HI_S,
+        **GAME_CONFIG,
+        **TRAINING_CONFIG,
         auto_play=False,
     ),
-    # dict(
-    #     name="ringsupplychain_5_pilot",
-    #     display_name="RSC PILOT, 5 Players, 8 rounds, cost 1, inventory sym 2, cash sym 30, time 30 always, no chain",
-    #     app_sequence=["ringsupplychain"],
-    #     num_demo_participants=3, 
-    #     players_per_group=3,
-    #     cost_per_second=1,
-    #     price_per_unit=10,
-    #     initial_stock=[2, 2, 2, 2, 2],
-    #     initial_cash=[30, 30, 30, 30, 30], 
-    #     round_seconds=[300, 300, 300, 300, 300, 300, 300, 300],
-    #     show_chain=False
-    # ),
-    # dict(
-    #     name="ringsupplychain_3_sym",
-    #     display_name="RSC, 3 Players, 2 rounds, cost 1, inventory (2, 2, 2), cash (30, 30, 30), time (300, 300), no chain",
-    #     app_sequence=["ringsupplychain"],
-    #     num_demo_participants=3, 
-    #     players_per_group=3,
-    #     cost_per_second=2,
-    #     price_per_unit=10,
-    #     initial_stock=[2, 2, 2],
-    #     initial_cash=[30, 30, 30], 
-    #     round_seconds=[300, 300],
-    #     show_chain=False
-    # ),
-    # dict(
-    #     name="ringsupplychain_3_sym_chain",
-    #     display_name="RSC, 3 Players, 2 rounds, cost 1, inventory (2, 2, 2), cash (30, 30, 30), time (300, 300), chain visible",
-    #     app_sequence=["ringsupplychain"],
-    #     num_demo_participants=3, 
-    #     players_per_group=3,
-    #     cost_per_second=1,
-    #     price_per_unit=10,
-    #     initial_stock=[2, 2, 2],
-    #     initial_cash=[30, 30, 30], 
-    #     round_seconds=[300, 300],
-    #     show_chain=True
-    # ),
-    # dict(
-    #     name="ringsupplychain_5_asym",
-    #     display_name="RSC, 5 Players, 2 rounds, cost 1, inventory (0, 5, 0, 5, 0), cash (30, 30, 30, 30 , 30), time (300, 300), no chain",
-    #     app_sequence=["ringsupplychain"],
-    #     num_demo_participants=5,
-    #     players_per_group=5,
-    #     cost_per_second=2,
-    #     price_per_unit=10,
-    #     initial_stock=[0, 5, 0, 5, 0],
-    #     initial_cash=[30, 30, 30, 30, 30], 
-    #     round_seconds=[300, 300],
-    #     show_chain=False
-    # ),
-    # dict(
-    #     name="ringsupplychain_5_asym_chain",
-    #     display_name="RSC, 5 Players, 2 rounds, cost 1, inventory (0, 5, 0, 5, 0), cash (30, 30, 30, 30 , 30), time (300, 300), chain visible",
-    #     app_sequence=["ringsupplychain"],
-    #     num_demo_participants=5,
-    #     players_per_group=5,
-    #     cost_per_second=1,
-    #     price_per_unit=10,
-    #     initial_stock=[0, 5, 0, 5, 0],
-    #     initial_cash=[30, 30, 30, 30, 30], 
-    #     round_seconds=[300, 300],
-    #     show_chain=True
-    # ),
-    # dict(
-    #     name="ringsupplychain_10_asym",
-    #     display_name="RSC, 10 Players, 2 rounds, cost 2, inventory sym 2, cash sym 30, time 300, chain visible",
-    #     app_sequence=["ringsupplychain"],
-    #     num_demo_participants=20,
-    #     players_per_group=10,
-    #     cost_per_second=1,
-    #     price_per_unit=10,
-    #     initial_stock=[2 for _ in range(10)],
-    #     initial_cash=[30 for _ in range(10)],
-    #     round_seconds=[300, 300],
-    #     show_chain=True
-    # ),
+    dict(
+        name="inv_hi_s_info",
+        display_name="INV_HI_S_INFO (sym 2 units; 300ecu; with info)",
+        app_sequence=["ringsupplychain"],
+        num_demo_participants=5, 
+        **INV_HI_S_INFO,
+        **GAME_CONFIG,
+        **TRAINING_CONFIG,
+        auto_play=False,
+    ),
     dict(
         name="questionnaire",
-        display_name="Final Questionnaire",
+        display_name="Final Questionnaire + Payments",
         app_sequence=["questionnaires"],
         num_demo_participants=1,
-    )
+    ),
+    dict(
+        name="complete_demo",
+        display_name="Experiment Demo: INV_HI_S",
+        app_sequence=["intro", "training", "ringsupplychain", "questionnaires"],
+        num_demo_participants=5,
+        **INV_HI_S,
+        **GAME_CONFIG,
+        **TRAINING_CONFIG,
+        auto_play=True,
+    ),
 ]
 
 # Rooms
@@ -162,10 +156,10 @@ ROOMS = [
 # e.g. self.session.config['participation_fee']
 
 SESSION_CONFIG_DEFAULTS = dict(
-    real_world_currency_per_point=0.02, participation_fee=0.00, doc=""
+    real_world_currency_per_point=0.01, participation_fee=5.00, doc=""
 )
 
-PARTICIPANT_FIELDS = []
+PARTICIPANT_FIELDS = ['game_rounds']
 SESSION_FIELDS = []
 
 # ISO-639 code

@@ -1,0 +1,84 @@
+{{ block title }}
+    Instructions of the Game (will be read aloud)
+{{ endblock }}
+
+{{ block content }}
+    <h3>Instructions</h3>
+    <p>
+        <b>Preface:</b> When referring to <b>you</b> in the text, we refer to every participant. All payments and costs in the tasks appear in Experimental Currency Units (ECU); after the experiment, conversion to euros uses an exchange rate of {{ exchange_rate }}. 
+    </p>
+
+    <p>
+        <b>Environment:</b> You act in a closed ring system with {{ num_participants }} participants, having a <em>predecessor</em> and a <em>successor</em>. 
+        {{ if not show_chain }}The number of participants in the ring is unknown to you.{{ endif }}
+    </p>
+
+    {{ if show_chain }}
+        <div class="mb-3">
+            <svg width="100%" viewBox="0 0 1000 400" xmlns="http://www.w3.org/2000/svg" id="id_circle"></svg>
+            <p class="small text-center">Note: Your position in the ring is indicated by the gray background color. In this example, you would be at spot {{ own_id_in_group }}.</p>
+        </div>
+    {{ else }}
+        <div class="text-center mb-3"><img src="{{ static 'intro/embedding.png' }}" alt="embedding" style="width: 80%;"></div>
+    {{ endif }}
+
+    <p>
+        <b>Situation:</b> At every moment, you can request one unit of a virtual good from your predecessor. You receive a unit only if your predecessor has one in their inventory. Simultaneously, your successor can request a unit from you. 
+    </p>
+
+    <p>
+        <b>Inventory:</b> Your inventory stores your units; it can be zero or positive. Every time you receive a unit from your predecessor, your inventory increases by one. Every time your successor receives a unit from you, your inventory decreases by one. You will learn about your initial number of items at the beginning of a round.
+    </p>
+
+    
+    <p>
+        <b>Your Actions:</b> To request a unit, click REQUEST in the left box. The box turns green for a second when your predecessor’s inventory has a unit and you receive it; otherwise, it turns red.
+    </p>
+
+    <p>
+        <b>Your Successor's action:</b> When your successor clicks request, the right box turns green for a second when your inventory has a unit, and your successor receives it; otherwise, it turns red. 
+    </p>
+
+    <p><b>Costs and Benefits:</b></p>
+    <ul>
+        <li>You start with {{ ecu_endowment }} ECUs.</li> 
+        <li>You earn {{ ecu_earn }} ECUs every time your successor receives a unit from you.</li>
+        <li>You must pay {{ ecu_inventory_cost}} ECU every second for each unit in your inventory, i.e., holding inventory is costly.</li>
+        <li>Your ECU balance adjusts accordingly. Technically, it can go negative, but you can also recover.</li>
+    </ul>
+
+    <p>
+        <b>Round:</b> A round ends after {{ round_seconds }} seconds. You participate in {{ num_rounds }} rounds within changing groups of participants. Before you start a round, you learn about the parameters. 
+    </p>
+
+    <p>
+        <b>Training:</b>To get comfortable with the situation, you have a {{ training_round_seconds }} second round without payments, where computer predecessors and successors make random choices. These choices are random, and do not indicate any specific decision rules. Please note that in the main rounds after the training there will not be any computer players more.
+    </p>
+
+    
+    <p>
+        <b>Payment:</b> At the end of the experiment, the computer randomly picks one of the {{ num_rounds }} rounds. Your ECU balance from that round converts to Euro at the rate {{ exchange_rate }}. Your earnings from this experiment are your completion fee plus your Euro earnings from the selected round. If your earnings from the selected round are negative, you only receive the completion fee.  
+    </p>
+
+    <p>
+        On the following screen, you can experience the experimental environment and interface in training mode for {{ training_round_seconds }} seconds. This training mode is not payout-relevant. So, try as much as you can. Afterward, we will provide time for questions about the instructions before we start. 
+    </p>
+
+    {{ formfield 'instructor_code_2' label='Please raise your questions now; otherwise, enter the code provided by the instructor:' }}
+
+    {{ if DEBUG }}
+        <p class="text-danger">DEBUG MODE: The code is: 6</p>
+    {{ endif }}
+
+    {{ next_button }}
+{{ endblock }}
+
+{{ block scripts }}
+    {{ if show_chain }}
+        <script src="{{ static 'chain/draw.js' }}"></script>
+        <script>
+            const circle = document.getElementById("id_circle");
+            draw_rows(circle, js_vars.players_per_group, js_vars.own_id_in_group);
+        </script>
+    {{ endif }}
+{{ endblock }}

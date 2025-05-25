@@ -1,19 +1,20 @@
 {{ block title }}
-    Results
+    Round {{ player.round_number }} - Information Screen
 {{ endblock }}
 
 {{ block content }}
-    <div>
-        <p>
-            Inventory: <span id="inventory_display">{{ inventory }}</span> units<br>
-            Balance: <span id="balance_display">{{ balance|to2 }}</span>
-        </p>
-        <p>
-            Total earnings: <span id="total_revenue_display">{{ total_revenue|to2 }}</span><br>
-            Total costs: <span id="total_cost_display">{{ total_cost|to2 }}</span><br>
-            Total profit: <span id="total_profit_display">{{ total_profit|to2 }}</span>
-        </p>
-    </div>    
+    <p>
+        Round {{ player.round_number }} conclusion:
+    </p>
+    <p>
+        You started with {{ initial_balance }} ECU,<br>
+        delivered {{ num_items_delivered }} items to your successor,<br>
+        earning a total of {{ total_revenue|to2 }},<br>
+        and paid {{ total_cost|to2 }} inventory costs.
+    </p>
+    <p>
+        Your total earnings are {{ total_profit|to2 }}. This amount will be added to your completion fee if selected.
+    </p>
     {{ formfields }}
     {{ next_button }}
     

@@ -11,14 +11,6 @@ class C(BaseConstants):
     PLAYERS_PER_GROUP = None
     NUM_ROUNDS = 1
     
-    TRAINING_SECONDS = 90
-    TRAINING_START_DELAY_SECONDS = 15
-    TRAINING_LEAVE_SECONDS = 30
-    TRAINING_TOTAL_SECONDS = TRAINING_START_DELAY_SECONDS + TRAINING_SECONDS
-
-    REQUEST_TIMEOUT_SECONDS = 0
-    INFO_HIGHLIGHT_TIMEOUT_SECONDS = 1
-
 
 class Subsession(BaseSubsession):
     players_per_group = models.IntegerField()
@@ -26,9 +18,15 @@ class Subsession(BaseSubsession):
     initial_cash = models.FloatField()
     cost_per_second = models.FloatField()
     price_per_unit = models.FloatField()
-    round_seconds = models.IntegerField()
     show_chain = models.BooleanField(initial=False)
+    transfer_probability = models.FloatField()
 
+    start_delay_seconds = models.IntegerField()
+    leave_seconds = models.IntegerField()
+    round_seconds = models.IntegerField()
+    total_seconds = models.IntegerField()
+    request_timeout_seconds = models.IntegerField()
+    info_highlight_timeout_seconds = models.IntegerField()
 
 class Group(BaseGroup):
     pass
@@ -47,17 +45,25 @@ class Player(BasePlayer):
 
 # FUNCTIONS
 def creating_session(subsession):
-    players_per_group = subsession.session.config.get('players_per_group', None)
-    initial_stock = subsession.session.config.get('training_initial_stock', None)
-    initial_cash = subsession.session.config.get('training_initial_cash', None)
-    cost_per_second = subsession.session.config.get('training_cost_per_second', None)
-    price_per_unit = subsession.session.config.get('training_price_per_unit', None)
-    # round_seconds = subsession.session.config.get('training_round_seconds', None)
-    show_chain = subsession.session.config.get('training_show_chain', False)
+    sess = subsession.session
+    players_per_group = sess.config.get('players_per_group', None)
+    initial_stock = sess.config.get('training_initial_stock', None)
+    initial_cash = sess.config.get('training_initial_cash', None)
+    cost_per_second = sess.config.get('training_cost_per_second', None)
+    price_per_unit = sess.config.get('training_price_per_unit', None)
+    show_chain = sess.config.get('training_show_chain', False)
+    transfer_probability = sess.config.get('training_transfer_probability', None)
+    
+    start_delay_seconds = sess.config.get('training_start_delay_seconds', None)
+    leave_seconds = sess.config.get('training_leave_seconds', None)
+    round_seconds = sess.config.get('training_round_seconds', None)
+    request_timeout_seconds = sess.config.get('training_request_timeout_seconds', None)
+    info_highlight_timeout_seconds = sess.config.get('training_info_highlight_timeout_seconds', None)
+    total_seconds = start_delay_seconds + round_seconds
 
     if any(var is None for var in
            [players_per_group, initial_stock, initial_cash, cost_per_second, price_per_unit,
-            show_chain]):
+            show_chain, transfer_probability, start_delay_seconds, leave_seconds, round_seconds, request_timeout_seconds,info_highlight_timeout_seconds]):
         raise ValueError("session not configured correctly")
 
     subsession.players_per_group = players_per_group
@@ -65,8 +71,15 @@ def creating_session(subsession):
     subsession.initial_cash = initial_cash
     subsession.cost_per_second = cost_per_second
     subsession.price_per_unit = price_per_unit
-    subsession.round_seconds = C.TRAINING_SECONDS
     subsession.show_chain = show_chain
+    subsession.transfer_probability = transfer_probability
+
+    subsession.round_seconds = round_seconds
+    subsession.start_delay_seconds = start_delay_seconds
+    subsession.leave_seconds = leave_seconds
+    subsession.request_timeout_seconds = request_timeout_seconds
+    subsession.info_highlight_timeout_seconds = info_highlight_timeout_seconds
+    subsession.total_seconds = total_seconds
 
     player_list = subsession.get_players()
 
@@ -85,30 +98,27 @@ def common_vars_for_template(player):
         'total_profit': player.total_profit,
         'num_players': subs.players_per_group,
         'show_chain': subs.show_chain,
+        'info_highlight_timeout_seconds': subs.info_highlight_timeout_seconds,
+        'training_start_delay_seconds': subs.start_delay_seconds,
+        'training_seconds': subs.round_seconds,
+        'allow_training_leave_seconds': subs.leave_seconds,
+        'transfer_probability': subs.transfer_probability,
     }
 
 
 # PAGES
-class TrainingIntro(Page):
-    pass
-
 class TrainingRound(Page):
     def get_timeout_seconds(player):
-        return C.TRAINING_TOTAL_SECONDS
+        return player.subsession.total_seconds
 
     @staticmethod
     def js_vars(player):
+        subs = player.subsession
         return {
             'own_id_in_group': player.id_in_group,
-            'request_button_timeout_seconds': C.REQUEST_TIMEOUT_SECONDS,
-            'info_highlight_timeout_seconds': C.INFO_HIGHLIGHT_TIMEOUT_SECONDS,
-            'training_start_delay_seconds': C.TRAINING_START_DELAY_SECONDS,
-            'training_seconds': C.TRAINING_SECONDS,
-            'allow_training_leave_seconds': C.TRAINING_LEAVE_SECONDS,
-            'inventory_unit_cost_per_second': player.subsession.cost_per_second,
-            'transfer_probability': 0.5,
-            'inventory_unit_price': player.subsession.price_per_unit,
-            
+            'request_button_timeout_seconds': subs.request_timeout_seconds,
+            'inventory_unit_cost_per_second': subs.cost_per_second,
+            'inventory_unit_price': subs.price_per_unit,
             **common_vars_for_template(player),
         }
 
@@ -123,8 +133,6 @@ class TrainingFeedback(Page):
 
 
 page_sequence = [
-    # FigureDemo,
-    TrainingIntro, 
     TrainingRound, 
     TrainingFeedback
 ]

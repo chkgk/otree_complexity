@@ -5,6 +5,7 @@ import json
 import math
 from collections import defaultdict
 from settings import BASE_URL
+from otree.settings import DEBUG
 
 doc = """
 Your app description
@@ -14,13 +15,7 @@ Your app description
 class C(BaseConstants):
     NAME_IN_URL = 'ringsupplychain'
     PLAYERS_PER_GROUP = None
-    NUM_ROUNDS = 1
-    
-    # Timeouts
-    DECISION_TIMEOUT_SECONDS = 300  # 5 min
-    REQUEST_TIMEOUT_SECONDS = 0
-    INFO_HIGHLIGHT_TIMEOUT_SECONDS = 1
-    
+    NUM_ROUNDS = 1 
 
 
 class Subsession(BaseSubsession):
@@ -33,6 +28,8 @@ class Subsession(BaseSubsession):
     show_chain = models.BooleanField(initial=False)
     room_name = models.StringField()
     auto_play = models.BooleanField(initial=False)
+    request_timeout_seconds = models.IntegerField()
+    info_highlight_timeout_seconds = models.IntegerField()
 
 
 
@@ -73,16 +70,19 @@ class Requests(ExtraModel):
 
 # FUNCTIONS
 def creating_session(subsession):
-    players_per_group = subsession.session.config.get('players_per_group', None)
-    initial_stock = subsession.session.config.get('initial_stock', None)
-    initial_cash = subsession.session.config.get('initial_cash', None)
-    cost_per_second = subsession.session.config.get('cost_per_second', None)
-    price_per_unit = subsession.session.config.get('price_per_unit', None)
-    round_seconds = subsession.session.config.get('round_seconds', None)
-    show_chain = subsession.session.config.get('show_chain', False)
-    auto_play = subsession.session.config.get('auto_play', False)
+    sess = subsession.session
+    players_per_group = sess.config.get('players_per_group', None)
+    initial_stock = sess.config.get('initial_stock', None)
+    initial_cash = sess.config.get('initial_cash', None)
+    cost_per_second = sess.config.get('cost_per_second', None)
+    price_per_unit = sess.config.get('price_per_unit', None)
+    round_seconds = sess.config.get('round_seconds', None)
+    show_chain = sess.config.get('show_chain', False)
+    auto_play = sess.config.get('auto_play', False)
+    request_timeout_seconds = sess.config.get('request_timeout_seconds', None)
+    info_highlight_timeout_seconds = sess.config.get('info_highlight_timeout_seconds', None)
     
-    if any(var is None for var in [players_per_group, initial_stock, initial_cash, cost_per_second, price_per_unit, round_seconds, show_chain]):
+    if any(var is None for var in [players_per_group, initial_stock, initial_cash, cost_per_second, price_per_unit, round_seconds, show_chain, request_timeout_seconds, info_highlight_timeout_seconds]):
         raise ValueError("session not configured correctly")
     
     # if it is not a list, make it a list
@@ -101,6 +101,8 @@ def creating_session(subsession):
     subsession.round_seconds = round_seconds[subsession.round_number - 1]
     subsession.show_chain = show_chain
     subsession.auto_play = auto_play
+    subsession.request_timeout_seconds = request_timeout_seconds
+    subsession.info_highlight_timeout_seconds = info_highlight_timeout_seconds
     
     player_list = subsession.get_players()
 
@@ -122,8 +124,8 @@ def creating_session(subsession):
 
     # assign endowments to players
     for player in player_list:
-        player.inventory = initial_stock[player.id_in_group - 1]
-        player.balance = initial_cash[player.id_in_group - 1]
+        player.inventory = int(initial_stock[player.id_in_group - 1])
+        player.balance = cu(initial_cash[player.id_in_group - 1])
 
 def live_inventory(player):
     # get current time
@@ -269,8 +271,11 @@ def common_vars_for_template(player):
         'total_profit': player.total_profit,
         'num_players': subs.players_per_group,
         'show_chain': subs.show_chain,
-        'DEBUG': player.session.config.get('DEBUG', False),
         'auto_play': subs.auto_play,
+        'round_seconds': subs.round_seconds,
+        'request_button_timeout_seconds': subs.request_timeout_seconds,
+        'info_highlight_timeout_seconds': subs.info_highlight_timeout_seconds,
+        'DEBUG': DEBUG
     }
 
 def finalize_round(group):
@@ -309,6 +314,17 @@ def finalize_round(group):
             # print('balance', player.balance)
             # print('total_profit', player.total_profit)
         
+        # store payment data on the participant
+        game_data = {
+            'ecu_earnings': int(player.total_profit),
+            'eur_earnings': float(player.total_profit.to_real_world_currency(subs.session)),
+            'round': player.round_number
+        }
+        if player.round_number == 1:
+            player.participant.vars['game_rounds'] = [game_data]
+        else:
+            player.participant.vars['game_rounds'].append(game_data)
+        
 
 def close_room(subsession):
     room = subsession.session.get_room()
@@ -321,6 +337,10 @@ def register_room(subsession):
     subsession.room_name = room_name
 
 # PAGES
+class RoundPreface(Page):
+    def vars_for_template(player):
+        return common_vars_for_template(player)
+
 class JointStart(WaitPage):
     wait_for_all_groups = True
     after_all_players_arrive = 'register_room'
@@ -333,8 +353,6 @@ class Decision(Page):
     def js_vars(player):
         return {
             'own_id_in_group': player.id_in_group,
-            'request_button_timeout_seconds': C.REQUEST_TIMEOUT_SECONDS,
-            'info_highlight_timeout_seconds': C.INFO_HIGHLIGHT_TIMEOUT_SECONDS,
             'inventory_unit_cost_per_second': player.subsession.cost_per_second,
             **common_vars_for_template(player),
         }
@@ -348,7 +366,7 @@ class Decision(Page):
     @staticmethod
     def live_method(player, data):        
         if data['type'] == 'init':
-            print('init by player', player.id_in_group, "group", player.group.id_in_subsession)
+            # print('init by player', player.id_in_group, "group", player.group.id_in_subsession)
             current_time = time.time()
             if player.field_maybe_none('last_inventory_update') is None:
                 player.last_inventory_update = current_time
@@ -374,8 +392,14 @@ class Results(Page):
             target_room = 'room1' if room.name == 'room2' else 'room2'
             room_url = f"http://{BASE_URL}/room/{target_room}/"
 
+
+        subs = player.subsession
+        items_delivered = player.total_revenue / subs.price_per_unit if subs.price_per_unit > 0 else 0
+
         return {
             'room_url': room_url,
+            'initial_balance': json.loads(subs.initial_cash)[player.id_in_group - 1],
+            'num_items_delivered': int(items_delivered),
             **cv
         }
 
@@ -462,6 +486,7 @@ class ResultsFigure(Page):
         
 
 page_sequence = [
+    RoundPreface,
     JointStart, 
     Decision, 
     ResultsWait, 
