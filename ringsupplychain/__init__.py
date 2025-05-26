@@ -96,7 +96,8 @@ def creating_session(subsession):
     # transform string list into actual list
     initial_stock = [i.strip() for i in initial_stock.split(",")]
     initial_cash = [i.strip() for i in initial_cash.split(",")]
-        
+    
+    # assign variables
     subsession.players_per_group = players_per_group
     subsession.initial_stock = json.dumps(initial_stock)
     subsession.initial_cash = json.dumps(initial_cash)
@@ -111,7 +112,6 @@ def creating_session(subsession):
     subsession.countdown_seconds = countdown_seconds
     
     player_list = subsession.get_players()
-
     # match groups
     if subsession.round_number == 1:
         # check if the number of players is divisible by the number of players per group
