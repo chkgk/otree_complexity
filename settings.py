@@ -4,10 +4,7 @@ GAME_CONFIG = dict(
     request_timeout_seconds=0,
     info_highlight_timeout_seconds=1,
     countdown_seconds=5,
-    cost_per_second=5,
-    price_per_unit=100,
     round_seconds=180,
-    num_rounds=4,  # not active yet
     payment_link="https://example.com/",
 )
 
@@ -25,32 +22,69 @@ TRAINING_CONFIG = dict(
 )
 
 INV_LO_A = dict(
+    treatment="INV_LO_A",
     players_per_group=5,
     initial_stock="1, 0, 0, 0, 0",
-    initial_cash="300, 300, 300, 300, 300", 
-    show_chain=False,
+    initial_cash="300, 300, 300, 300, 300",
+    cost_per_second="5",
+    price_per_unit="100",
+    show_chain="False",
 )
 
 INV_HI_A = dict(
+    treatment="INV_HI_A",
     players_per_group=5,
     initial_stock="10, 0, 0, 0, 0",
-    initial_cash="300, 300, 300, 300, 300", 
-    show_chain=False,
+    initial_cash="300, 300, 300, 300, 300",
+    cost_per_second="5",
+    price_per_unit="100",
+    show_chain="False",
 )
 
 INV_HI_S = dict(
+    treatment="INV_HI_S",
     players_per_group=5,
     initial_stock="2, 2, 2, 2, 2",
-    initial_cash="300, 300, 300, 300, 300", 
-    show_chain=False,
+    initial_cash="300, 300, 300, 300, 300",
+    cost_per_second="5",
+    price_per_unit="100",
+    show_chain="False"
 )
 
 INV_HI_S_INFO = dict(
+    treatment="INV_HI_S_INFO",
     players_per_group=5,
     initial_stock="2, 2, 2, 2, 2",
-    initial_cash="300, 300, 300, 300, 300", 
-    show_chain=True,
+    initial_cash="300, 300, 300, 300, 300",
+    cost_per_second="5",
+    price_per_unit="100",
+    show_chain="True"
 )
+
+# INV_LO_A -> INV_HI_A -> INV_HI_S -> INV_HI_S_INFO
+SESSION_1 = dict(
+    treatment="INV_LO_A; INV_HI_A; INV_HI_S; INV_HI_S_INFO",
+    players_per_group=5,
+    initial_stock="2, 2, 2, 2, 2; 1, 0, 0, 0, 0; 10, 0, 0, 0, 0; 2, 2, 2, 2, 2",
+    initial_cash="300, 300, 300, 300, 300; 300, 300, 300, 300, 300; 300, 300, 300, 300, 300; 300, 300, 300, 300, 300",
+    cost_per_second="5; 5; 5; 5",
+    price_per_unit="100; 100; 100; 100",
+    show_chain="False; False; False; True"
+)
+
+# INV_HI_S_INFO -> INV_HI_S -> INV_HI_A -> INV_LO_A
+SESSION_2 = dict(
+    treatment="INV_HI_S_INFO; INV_HI_S; INV_HI_A; INV_LO_A",
+    players_per_group=5,
+    initial_stock="2, 2, 2, 2, 2; 2, 2, 2, 2, 2; 10, 0, 0, 0, 0; 1, 0, 0, 0, 0",
+    initial_cash="300, 300, 300, 300, 300; 300, 300, 300, 300, 300; 300, 300, 300, 300, 300; 300, 300, 300, 300, 300",
+    cost_per_second="5; 5; 5; 5",
+    price_per_unit="100; 100; 100; 100",
+    show_chain="True; False; False; False"
+)
+
+# SESSION_3 = dict(
+
 
 SESSION_CONFIGS = [
     dict(
@@ -126,17 +160,47 @@ SESSION_CONFIGS = [
         auto_play=False,
     ),
     dict(
+        name="session_1",
+        display_name="Session 1: INV_LO_A -> INV_HI_A -> INV_HI_S -> INV_HI_S_INFO",
+        app_sequence=["ringsupplychain_4"],
+        num_demo_participants=5,
+        **SESSION_1,
+        **GAME_CONFIG,
+        **TRAINING_CONFIG,
+        auto_play=False,
+    ),
+    dict(
+        name="session_2",
+        display_name="Session 2: INV_HI_S_INFO -> INV_HI_S -> INV_HI_A -> INV_LO_A",
+        app_sequence=["ringsupplychain_4"],
+        num_demo_participants=5,
+        **SESSION_2,
+        **GAME_CONFIG,
+        **TRAINING_CONFIG,
+        auto_play=False,
+    ),
+    dict(
         name="questionnaire",
         display_name="Final Questionnaire + Payments",
         app_sequence=["questionnaires"],
         num_demo_participants=1,
     ),
     dict(
-        name="complete_demo",
+        name="complete_demo_single",
         display_name="Experiment Demo: INV_HI_S",
         app_sequence=["intro", "training", "ringsupplychain", "questionnaires"],
         num_demo_participants=5,
         **INV_HI_S,
+        **GAME_CONFIG,
+        **TRAINING_CONFIG,
+        auto_play=False,
+    ),
+    dict(
+        name="complete_demo_four",
+        display_name="Experiment Demo: Session 1",
+        app_sequence=["intro", "training", "ringsupplychain_4", "questionnaires"],
+        num_demo_participants=5,
+        **SESSION_1,
         **GAME_CONFIG,
         **TRAINING_CONFIG,
         auto_play=True,

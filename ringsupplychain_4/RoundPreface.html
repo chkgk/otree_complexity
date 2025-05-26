@@ -1,0 +1,27 @@
+{{ block title }}
+    Round {{ player.round_number }} Preface
+{{ endblock }}
+
+{{ block content }}
+    <p>
+        <b>Round {{ player.round_number }}</b>
+    </p>
+
+    <p>
+        This round takes {{ round_seconds }} seconds. Your balance is {{ balance }}. Your inventory is {{ inventory }} units. Click “Start Round” button to start round {{ player.round_number }}.
+    </p>
+    <p>
+        This round may be selected for payment at the end of the experiment.
+    </p>
+
+    {{ formfields }}
+    {{ next_button }}
+    
+{{ endblock }}
+
+{{ block scripts }}
+<script>
+    const nextButton = document.getElementsByClassName("otree-btn-next")[0];
+    nextButton.innerText = "Start Round";
+</script>
+{{ endblock scripts }}

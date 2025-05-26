@@ -123,9 +123,10 @@ class GameInstructions(Page):
         show_chain = sess.config.get('show_chain', False)
         half = players_per_group // 2
         middle_pos = half if players_per_group % 2 == 0 else half + 1
-        initial_cash = sess.config.get('initial_cash', 30)
-        if type(initial_cash) is str:
-            initial_cash = [int(x.strip()) for x in initial_cash.split(',')][0]
+        
+        initial_cash_rounds = sess.config.get('initial_cash', None)
+        initial_cash_rounds = [[int(x.strip()) for x in blocks.split(',')] for blocks in initial_cash_rounds.split(';')] if initial_cash_rounds else [[0]]
+        initial_cash = initial_cash_rounds[0][0]
         
         return {
             'exchange_rate': f"100 ECU = {hundred_ecu:.2f} €",

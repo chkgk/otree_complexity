@@ -1,0 +1,14 @@
+{{ block title }}
+    Back to the Waiting Room
+{{ endblock }}
+
+{{ block content }}
+    <a class="btn btn-primary" href="{{ room_url }}">Next</a>
+    
+{{ endblock }}
+
+{{ block script }}
+    <script>
+        window.location.href = "{{ room_url }}";
+    </script>
+{{ endblock }}

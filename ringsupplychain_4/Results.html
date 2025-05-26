@@ -1,0 +1,21 @@
+{{ block title }}
+    Round {{ player.round_number }} - Information Screen
+{{ endblock }}
+
+{{ block content }}
+    <p>
+        Round {{ player.round_number }} conclusion:
+    </p>
+    <p>
+        You started with {{ initial_balance }} ECU,<br>
+        delivered {{ num_items_delivered }} items to your successor,<br>
+        earning a total of {{ total_revenue|to2 }},<br>
+        and paid {{ total_cost|to2 }} inventory costs.
+    </p>
+    <p>
+        Your total earnings are {{ total_profit|to2 }}. This amount will be added to your completion fee if selected.
+    </p>
+    {{ formfields }}
+    {{ next_button }}
+    
+{{ endblock }}

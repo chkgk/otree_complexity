@@ -14,9 +14,9 @@ Your app description
 
 
 class C(BaseConstants):
-    NAME_IN_URL = 'ringsupplychain'
+    NAME_IN_URL = 'ringsupplychain4'
     PLAYERS_PER_GROUP = None
-    NUM_ROUNDS = 1 
+    NUM_ROUNDS = 4 
 
 
 class Subsession(BaseSubsession):
