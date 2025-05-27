@@ -125,7 +125,7 @@ SESSION_CONFIGS = [
         **INV_HI_A,
         **GAME_CONFIG,
         **TRAINING_CONFIG,
-        auto_play=True,
+        auto_play=False,
     ),
     dict(
         name="inv_hi_s",
@@ -172,6 +172,7 @@ SESSION_CONFIGS = [
         display_name="Final Questionnaire + Payments",
         app_sequence=["questionnaires"],
         num_demo_participants=1,
+        **GAME_CONFIG
     ),
     dict(
         name="complete_demo_single",
@@ -191,7 +192,7 @@ SESSION_CONFIGS = [
         **SESSION_1,
         **GAME_CONFIG,
         **TRAINING_CONFIG,
-        auto_play=True,
+        auto_play=False,
     ),
     dict(
         name="inv_hi_s_info_auto",
