@@ -184,7 +184,7 @@ function draw_row(element, n, row_num, start_id, start_x, box_width, box_height,
     let start_y = first_start_y + row_num * 2 * box_height;
     for (let i = 0; i < n; i++) {
         let id = start_id + i + 1;
-        let base_color = id == own_id ? "#DCDCDC" : "white";
+        let base_color = id == own_id ? "#bfbfbf" : "white";
         let x = start_x + connector_length + i * (connector_length + box_width);
         draw_rect(element, `p${id}`, x, start_y, box_width, box_height, id, base_color);
         draw_connector(element, start_x + i * (box_width + connector_length), start_y + box_height/2, connector_length, box_height);

@@ -51,6 +51,7 @@ class Player(BasePlayer):
     total_cost = models.CurrencyField(initial=0)
     total_revenue = models.CurrencyField(initial=0)
     total_profit = models.CurrencyField(initial=0)
+    total_items_sold = models.IntegerField(initial=0)
     
     def get_predecessor(self):
         if self.id_in_group == 1:
@@ -181,6 +182,7 @@ def live_inventory(player):
             'cost': player.total_cost,
             'revenue': player.total_revenue,
             'profit': player.total_profit,
+            'items_sold': player.total_items_sold,
             'chain_inventory': {p.id_in_group: p.inventory for p in player.group.get_players()},
         }
     }
@@ -220,6 +222,7 @@ def live_request(player, data):
 
         # update inventory 
         take_from_player.inventory -= units
+        take_from_player.total_items_sold += units
         give_to_player.inventory += units
         
         # update balance and revenue
@@ -288,6 +291,7 @@ def common_vars_for_template(player):
         'total_cost': player.total_cost,
         'total_revenue': player.total_revenue,
         'total_profit': player.total_profit,
+        'total_items_sold': player.total_items_sold,
         'num_players': subs.players_per_group,
         'show_chain': subs.show_chain,
         'auto_play': subs.auto_play,

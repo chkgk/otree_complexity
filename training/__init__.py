@@ -41,6 +41,7 @@ class Player(BasePlayer):
     total_cost = models.CurrencyField(initial=0)
     total_revenue = models.CurrencyField(initial=0)
     total_profit = models.CurrencyField(initial=0)
+    total_items_sold = models.IntegerField(initial=0)
 
 
 # FUNCTIONS
@@ -86,7 +87,7 @@ def creating_session(subsession):
     # assign endowments to players
     for player in player_list:
         player.inventory = initial_stock
-        player.balance = initial_stock
+        player.balance = initial_cash
 
 def common_vars_for_template(player):
     subs = player.subsession
@@ -96,6 +97,7 @@ def common_vars_for_template(player):
         'total_cost': player.total_cost,
         'total_revenue': player.total_revenue,
         'total_profit': player.total_profit,
+        'total_items_sold': player.total_items_sold,
         'num_players': subs.players_per_group,
         'show_chain': subs.show_chain,
         'info_highlight_timeout_seconds': subs.info_highlight_timeout_seconds,

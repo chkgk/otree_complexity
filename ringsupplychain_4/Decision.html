@@ -56,14 +56,15 @@
                     You
                 </h4>
                 <div class="card-body outer_box">
-                    <p>
+                    <p class="fw-bold">
                         Inventory: <span id="inventory_display">{{ inventory }}</span> units<br>
                         Balance: <span id="balance_display">{{ balance|to0 }}</span>
                     </p>
                     <p>
-                        Total earnings: <span id="total_revenue_display">{{ total_revenue|to0 }}</span><br>
-                        Total costs: <span id="total_cost_display">{{ total_cost|to0 }}</span><br>
-                        Total profit: <span id="total_profit_display">{{ total_profit|to0 }}</span>
+                        Items sold: <span id="total_items_sold_display">{{ total_items_sold }}</span><br>
+                        Total revenue: <span id="total_revenue_display">{{ total_revenue|to0 }}</span><br>
+                        Cost incurred: <span id="total_cost_display">{{ total_cost|to0 }}</span><br>
+<!--                        Total profit: <span id="total_profit_display">{{ total_profit|to0 }}</span>-->
                     </p>
                 </div>
                 <div class="card-footer text-muted text-center">
@@ -92,7 +93,12 @@
         </div>
       </div>
 
-    {{ if show_chain }}<svg width="100%" viewBox="0 0 1000 400" xmlns="http://www.w3.org/2000/svg" id="id_circle"></svg>{{ endif }}
+    {{ if show_chain }}
+        <div class="text-center">
+            <svg width="100%" viewBox="0 0 1000 400" xmlns="http://www.w3.org/2000/svg" id="id_circle"></svg>
+            <p class="small">Your position is highlighted in gray.</p>
+        </div>
+    {{ endif }}
 
 
     {{ formfields }}
@@ -126,8 +132,9 @@
     const inventoryDisplay = document.getElementById("inventory_display");
     const balanceDisplay = document.getElementById("balance_display");
     const totalCostDisplay = document.getElementById("total_cost_display");
+    const totalItemsSold = document.getElementById("total_items_sold_display");
     const totalRevenueDisplay = document.getElementById("total_revenue_display");
-    const totalProfitDisplay = document.getElementById("total_profit_display");
+    // const totalProfitDisplay = document.getElementById("total_profit_display");
     const predecessorInfo = document.getElementById("predecessor_info");
     const successorInfo = document.getElementById("successor_info");
     const predecessorTransferStatus = document.getElementById("predecesor_transfer_status");
@@ -168,7 +175,8 @@
         "balance": js_vars.balance,
         "total_cost": js_vars.total_cost,
         "total_revenue": js_vars.total_revenue,
-        "total_profit": js_vars.total_profit
+        "total_profit": js_vars.total_profit,
+        "total_items_sold": js_vars.total_items_sold
     };
     
     function timeout_request_button(timeout_seconds) {
@@ -195,6 +203,7 @@
         mydata.total_cost = data['from_cost'];
         mydata.total_revenue = data['from_revenue'];
         mydata.total_profit = data['from_profit'];
+        mydata.total_items_sold += data['units'];
         update_display();
     }
     
@@ -203,7 +212,8 @@
         balanceDisplay.innerHTML = mydata.balance.toFixed(0);
         totalCostDisplay.innerHTML = mydata.total_cost.toFixed(0);
         totalRevenueDisplay.innerHTML = mydata.total_revenue.toFixed(0);
-        totalProfitDisplay.innerHTML = mydata.total_profit.toFixed(0);
+        totalItemsSold.innerHTML = mydata.total_items_sold + " units";
+        // totalProfitDisplay.innerHTML = mydata.total_profit.toFixed(0);
     }
 
     function live_update_status(data) {
@@ -236,7 +246,7 @@
             from_player_inventory.textContent = data['from_inventory'];
             to_player_inventory.textContent = data['to_inventory'];
             
-            let color = data['transferred'] ? "lightgreen" : "#faa";
+            let color = data['transferred'] ? "#648FFF" : "#FFB000";
             from_player_r.setAttribute("fill", color);
             to_player_l.setAttribute("fill", color);
             window.setTimeout(function() {
@@ -280,8 +290,9 @@
             mydata.total_cost = data['data']['cost'];
             mydata.total_revenue = data['data']['revenue'];
             mydata.total_profit = data['data']['profit'];
+            mydata.total_items_sold = data['data']['items_sold'];
             update_display();
-            console.log(data['data']['chain_inventory']);
+            // console.log(data['data']['chain_inventory']);
             update_inventories(data['data']["chain_inventory"]);
         }
     }

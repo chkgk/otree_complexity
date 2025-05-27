@@ -61,9 +61,10 @@
                         Balance: <span id="balance_display">{{ balance|to0 }}</span>
                     </p>
                     <p>
-                        Total earnings: <span id="total_revenue_display">{{ total_revenue|to0 }}</span><br>
-                        Total costs: <span id="total_cost_display">{{ total_cost|to0 }}</span><br>
-                        Total profit: <span id="total_profit_display">{{ total_profit|to0 }}</span>
+                        Items sold: <span id="total_items_sold_display">{{ total_items_sold }}</span><br>
+                        Total revenue: <span id="total_revenue_display">{{ total_revenue|to0 }}</span><br>
+                        Cost incurred: <span id="total_cost_display">{{ total_cost|to0 }}</span>
+<!--                        Total profit: <span id="total_profit_display">{{ total_profit|to0 }}</span>-->
                     </p>
                 </div>
                 <div class="card-footer text-muted text-center">
@@ -92,7 +93,12 @@
         </div>
       </div>
 
-    {{ if show_chain }}<svg width="100%" viewBox="0 0 1000 400" xmlns="http://www.w3.org/2000/svg" id="id_circle"></svg>{{ endif }}
+    {{ if show_chain }}
+        <div class="text-center">
+            <svg width="100%" viewBox="0 0 1000 400" xmlns="http://www.w3.org/2000/svg" id="id_circle"></svg>
+            <p class="small">Your position is highlighted in gray.</p>
+        </div>
+    {{ endif }}
     
     {{ formfields }}
     {{ next_button }}
@@ -122,8 +128,9 @@
     const inventoryDisplay = document.getElementById("inventory_display");
     const balanceDisplay = document.getElementById("balance_display");
     const totalCostDisplay = document.getElementById("total_cost_display");
+    const totalItemsSold = document.getElementById("total_items_sold_display");
     const totalRevenueDisplay = document.getElementById("total_revenue_display");
-    const totalProfitDisplay = document.getElementById("total_profit_display");
+    // const totalProfitDisplay = document.getElementById("total_profit_display");
     const predecessorInfo = document.getElementById("predecessor_info");
     const successorInfo = document.getElementById("successor_info");
     const predecessorTransferStatus = document.getElementById("predecesor_transfer_status");
@@ -134,6 +141,29 @@
     const oTreeTimer = document.getElementsByClassName('otree-timer')[0];
     const startTimer = document.getElementsByClassName('start-timer')[0];
     const nextButton = document.getElementsByClassName("otree-btn-next")[0];
+    
+    const initialSupply = 2;
+    const maxSupply = 3;
+    const supplyIncreaseInterval = 2000; // in milliseconds
+    const supplyIncreaseAmount = 1; // amount to increase supply by each interval
+    
+    // setup supply
+    let supply = initialSupply;
+    // every second, supply increases by 1 until it reaches 3
+    window.setInterval(function() {
+        if (supply < maxSupply) {
+            supply += supplyIncreaseAmount;
+        }
+    }, supplyIncreaseInterval);
+    
+    function get_item_from_predecessor(units) {
+        if (supply > 0 && units <= supply) {
+            supply -= units;
+            return true;
+        } else {
+            return false;
+        }
+    }
     
     // setup next button
     nextButton.style.display = "none";
@@ -177,7 +207,8 @@
         "balance": js_vars.balance,
         "total_cost": js_vars.total_cost,
         "total_revenue": js_vars.total_revenue,
-        "total_profit": js_vars.total_profit
+        "total_profit": js_vars.total_profit,
+        "total_items_sold": js_vars.total_items_sold,
     };
     
     function start_game() {
@@ -209,6 +240,7 @@
         if (mydata.inventory > 0) {
             mydata.inventory -= 1;
             mydata.total_revenue += js_vars.inventory_unit_price;
+            mydata.total_items_sold += 1;
             mydata.balance += js_vars.inventory_unit_price;
             mydata.total_profit = mydata.total_revenue - mydata.total_cost;
             update_display();
@@ -222,7 +254,8 @@
         balanceDisplay.innerHTML = mydata.balance.toFixed(0) + " ECU";
         totalCostDisplay.innerHTML = mydata.total_cost.toFixed(0) + " ECU";
         totalRevenueDisplay.innerHTML = mydata.total_revenue.toFixed(0) + " ECU";
-        totalProfitDisplay.innerHTML = mydata.total_profit.toFixed(0) + " ECU";
+        totalItemsSold.innerHTML = mydata.total_items_sold + " units";
+        // totalProfitDisplay.innerHTML = mydata.total_profit.toFixed(0) + " ECU";
     }
 
     function live_update_status(data) {
@@ -255,7 +288,7 @@
             from_player_inventory.textContent = data['from_inventory'];
             to_player_inventory.textContent = data['to_inventory'];
             
-            let color = data['transferred'] ? "lightgreen" : "#faa";
+            let color = data['transferred'] ? "#648FFF" : "#FFB000";
             from_player_r.setAttribute("fill", color);
             to_player_l.setAttribute("fill", color);
             window.setTimeout(function() {
@@ -266,7 +299,7 @@
     }
     
     function send_request(units) {
-        let transferred = Math.random() < js_vars.transfer_probability;
+        let transferred = get_item_from_predecessor(units)
         update_receiver_data(transferred, units);
         highlight_predecessor(
             transferred, 

@@ -29,10 +29,10 @@ class Player(BasePlayer):
         ('prefer_not_to_say', 'prefer not to say')])
     birth_year = models.IntegerField(
         label="In which year are you born? (Please enter full calendar year with four digits)",
-        min=1900)
-    student_or_working = models.StringField(label="Are you currently a student or working?", widget=widgets.RadioSelect, choices=[
-        ('student', 'student'),
-        ('working', 'working')])
+        min=1900, max=2009)
+    #student_or_working = models.StringField(label="Are you currently a student or working?", widget=widgets.RadioSelect, choices=[
+        #('student', 'student'),
+        #('working', 'working')])
     education_level = models.StringField(label="What is your highest level of education?", widget=widgets.RadioSelect, choices=[
         ('high_school', 'High School Diploma'),
         ('bachelor', "Bachelor's Degree"),
@@ -45,7 +45,7 @@ class Player(BasePlayer):
     strategy_text = models.LongStringField(label="If Yes: Can you please briefly describe this strategy?", blank=True)
     comments = models.LongStringField(label="Is there anything you like to share about the experiment (suggestions, remaining questions, other feedback)?", blank=True)
     
-    payment_code = models.StringField(label="Enter the code you got here:")
+    payment_code = models.StringField()
     selected_round = models.IntegerField()
     ecu_earnings = models.CurrencyField()
     eur_earnings = models.FloatField()
@@ -70,7 +70,7 @@ def set_payments(player):
 # PAGES
 class Questionnaire(Page):
     form_model = 'player'
-    form_fields = ['gender', 'birth_year', 'student_or_working', 'education_level', 'risk_general', 'instructions_understood', 'specific_strategy', 'strategy_text', 'comments']
+    form_fields = ['gender', 'birth_year', 'education_level', 'risk_general', 'instructions_understood', 'specific_strategy', 'strategy_text', 'comments']
 
     @staticmethod
     def error_message(player, values):
@@ -89,12 +89,14 @@ class FinalScreen(Page):
     def vars_for_template(player):
         sess = player.session
         rounds = player.participant.vars.get('game_rounds', [])
-
+        pppf = player.participant.payoff_plus_participation_fee()
+        base_payment_link = sess.config.get('payment_link', 'https://example.com')
+        payment_link = f"{base_payment_link}?CodeA={player.participant.code}&Amount={float(pppf):.2f}"
         return {
             'game_rounds': rounds,
             'participation_fee': sess.config['participation_fee'],
-            'final_payment': player.participant.payoff_plus_participation_fee(),
-            'payment_link': sess.config.get('payment_link', 'https://example.com'),
+            'final_payment': pppf,
+            'payment_link': payment_link,
             'round_payment_negative': player.eur_earnings < 0,
         }
 

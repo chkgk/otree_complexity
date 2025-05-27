@@ -26,29 +26,36 @@
         {{ endif }}
     </p>
     <p>
-        For the payment, you will provide your information on a secure server. That information is only relevant to your payment.
+        For the payment, you will provide your payment details on a secure, GDPR-compliant server which keeps your data separate from the information recorded as part of this study.
     </p>
     <p>
-        Enter this payment ID: <span class="font-monospace fw-bold">{{ participant.code }}</span> and the amount <b>{{ final_payment }}</b> in the form following this link, together with your first and last name and your IBAN. That information will be sent to our finance department so they can make the payments as soon as possible. You get a code to enter below at the end of that form.
+        After filling-in the payment form, you will receive a confirmation code. Enter the code on this page to finalize the experiment.
     </p>
     <p>
-        Link to payment information: <a href="{{ payment_link }}" target="_blank">{{ payment_link }}</a>
+        <a class="btn btn-primary" href="{{ payment_link }}" target="_blank" id="payment_link">Go to Payment Form</a>
     </p>
 
-    {{ formfields }}
+    <div id="payment_box">
+        {{ formfield 'payment_code' label="Please enter the confirmation code you received after entering your payment details:" }}
+        <p>
+            Thank you very much for participating in this experiment!
+        </p>
     
-    <p>
-        Only when entering the correct code, have you completed the experiment.<br>
-        Thank you very much for participating in this experiment!
-    </p>
-
-    {{ next_button }}
-
+        {{ next_button }}
+    </div>
 {{ endblock }}
 
 {{ block scripts }}
 <script>
     const nextButton = document.getElementsByClassName('otree-btn-next')[0];
+    const paymentLink = document.getElementById('payment_link');
+    const paymentBox = document.getElementById('payment_box');
+    
     nextButton.innerText = "Finish Experiment";
+    paymentBox.style.display = 'none';
+    
+    paymentLink.addEventListener('click', function(event) {
+        paymentBox.style.display = 'block';
+    });
 </script>
 {{ endblock scripts }}
