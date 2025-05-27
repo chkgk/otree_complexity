@@ -88,26 +88,14 @@ SESSION_2 = dict(
 
 SESSION_CONFIGS = [
     dict(
-        name="intro_invisible",
-        display_name="Introduction - Ring not Visible",
+        name="intro",
+        display_name="Introduction",
         app_sequence=["intro"],
         num_demo_participants=1,
         players_per_group=5,
         initial_cash="30, 30, 30, 30, 30",
         initial_stock="2, 2, 2, 2, 2",
         show_chain=False,
-        **GAME_CONFIG,
-        **TRAINING_CONFIG
-    ),
-    dict(
-        name="intro_visible",
-        display_name="Introduction - Ring Visible",
-        app_sequence=["intro"],
-        num_demo_participants=1,
-        players_per_group=5,
-        initial_cash="300, 300, 300, 300, 300",
-        initial_stock="2, 2, 2, 2, 2",
-        show_chain=True,
         **GAME_CONFIG,
         **TRAINING_CONFIG
     ),
@@ -205,6 +193,22 @@ SESSION_CONFIGS = [
         **TRAINING_CONFIG,
         auto_play=True,
     ),
+    dict(
+        name="inv_hi_s_info_auto",
+        display_name="INV_HI_S_INFO (3 players, sym 2 units; 300ecu; with info, auto play)",
+        app_sequence=["ringsupplychain"],
+        num_demo_participants=3,
+        treatment="INV_HI_S_INFO",
+        players_per_group=3,
+        initial_stock="2, 2, 2",
+        initial_cash="300, 300, 300",
+        cost_per_second="5",
+        price_per_unit="100",
+        show_chain="True",
+        **GAME_CONFIG,
+        **TRAINING_CONFIG,
+        auto_play=True,
+    ),
 ]
 
 # Rooms
@@ -221,7 +225,7 @@ ROOMS = [
 # e.g. self.session.config['participation_fee']
 
 SESSION_CONFIG_DEFAULTS = dict(
-    real_world_currency_per_point=0.01, participation_fee=5.00, doc=""
+    real_world_currency_per_point=0.0016, participation_fee=5.00, doc=""
 )
 
 PARTICIPANT_FIELDS = ['game_rounds']

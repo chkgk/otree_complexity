@@ -71,6 +71,8 @@ class Requests(ExtraModel):
     from_balance = models.CurrencyField()
     to_inventory = models.IntegerField()
     to_balance = models.CurrencyField()
+    kind = models.StringField(choices=['request', 'init'], default='request')
+
 
 # FUNCTIONS
 def shuffled(l):
@@ -392,6 +394,24 @@ class Decision(Page):
                 player.last_inventory_update = current_time
             if player.field_maybe_none('init_time') is None:
                 player.init_time = current_time
+            
+            subs = player.subsession
+            Requests.create(
+                created=current_time + subs.countdown_seconds, # init is trigged on page load, but the countdown starts after the page is loaded
+                session=subs,
+                group_id=player.group.id_in_subsession,
+                round=player.round_number,
+                requested_from_id=player.id_in_group,
+                requested_by_id=player.id_in_group,
+                units=0,
+                transferred=False,
+                from_inventory=0,
+                from_balance=0,
+                to_inventory=0,
+                to_balance=0,
+                kind='init'
+            )
+            
             return live_inventory(player)
                         
         if data['type'] == 'request':
@@ -518,12 +538,13 @@ page_sequence = [
 
 # EXPORTS
 def custom_export(players):
-    yield ['time', 'subsession', 'round', 'group', 'requested_from', 'requested_by', 'units', 'transferred', 'from_inventory', 'from_balance', 'to_inventory', 'to_balance']
+    yield ['time', 'subsession', 'round', 'group', 'kind', 'requested_from', 'requested_by', 'units', 'transferred', 'from_inventory', 'from_balance', 'to_inventory', 'to_balance']
     for request in Requests.filter():
         yield [request.created, 
                request.session.session.code,
                request.round,
                request.group_id,
+               request.kind,
                request.requested_from_id,
                request.requested_by_id,
                request.units,

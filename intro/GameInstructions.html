@@ -13,14 +13,12 @@
         {{ if not show_chain }}The number of participants in the ring is unknown to you.{{ endif }}
     </p>
 
-    {{ if show_chain }}
-        <div class="mb-3">
-            <svg width="100%" viewBox="0 0 1000 400" xmlns="http://www.w3.org/2000/svg" id="id_circle"></svg>
-            <p class="small text-center">Note: Your position in the ring is indicated by the gray background color. In this example, you would be at spot {{ own_id_in_group }}.</p>
-        </div>
-    {{ else }}
-        <div class="text-center mb-3"><img src="{{ static 'intro/embedding.png' }}" alt="embedding" style="width: 80%;"></div>
-    {{ endif }}
+    <p>
+        <b>Illustration of your embedding:</b>
+    </p>
+    <div class="text-center mb-3">
+        <img src="{{ static 'intro/embedding.png' }}" alt="embedding" style="width: 80%;">
+    </div>
 
     <p>
         <b>Situation:</b> At every moment, you can request one unit of a virtual good from your predecessor. You receive a unit only if your predecessor has one in their inventory. Simultaneously, your successor can request a unit from you. 
@@ -52,7 +50,7 @@
     </p>
 
     <p>
-        <b>Training:</b>To get comfortable with the situation, you have a {{ training_round_seconds }} second round without payments, where computer predecessors and successors make random choices. These choices are random, and do not indicate any specific decision rules. Please note that in the main rounds after the training there will not be any computer players more.
+        <b>Training:</b>To get comfortable with the situation, you have a {{ training_round_seconds }} second round without payments, where computer predecessors and successors click randomly. After the training all participants are humans and no computer players.
     </p>
 
     
@@ -64,21 +62,11 @@
         On the following screen, you can experience the experimental environment and interface in training mode for {{ training_round_seconds }} seconds. This training mode is not payout-relevant. So, try as much as you can. Afterward, we will provide time for questions about the instructions before we start. 
     </p>
 
-    {{ formfield 'instructor_code_2' label='Please raise your questions now; otherwise, enter the code provided by the instructor:' }}
+    {{ formfield 'instructor_code_2' label='Please enter the code provided by the instructor:' }}
 
     {{ if DEBUG }}
         <p class="text-danger">DEBUG MODE: The code is: 6</p>
     {{ endif }}
 
     {{ next_button }}
-{{ endblock }}
-
-{{ block scripts }}
-    {{ if show_chain }}
-        <script src="{{ static 'chain/draw.js' }}"></script>
-        <script>
-            const circle = document.getElementById("id_circle");
-            draw_rows(circle, js_vars.players_per_group, js_vars.own_id_in_group);
-        </script>
-    {{ endif }}
 {{ endblock }}
