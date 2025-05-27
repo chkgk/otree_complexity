@@ -56,14 +56,14 @@
                     You
                 </h4>
                 <div class="card-body outer_box">
-                    <p>
+                    <p class="fw-bold">
                         Inventory: <span id="inventory_display">{{ inventory }} units</span><br>
-                        Balance: <span id="balance_display">{{ balance|to2 }}</span>
+                        Balance: <span id="balance_display">{{ balance|to0 }}</span>
                     </p>
                     <p>
-                        Total earnings: <span id="total_revenue_display">{{ total_revenue|to2 }}</span><br>
-                        Total costs: <span id="total_cost_display">{{ total_cost|to2 }}</span><br>
-                        Total profit: <span id="total_profit_display">{{ total_profit|to2 }}</span>
+                        Total earnings: <span id="total_revenue_display">{{ total_revenue|to0 }}</span><br>
+                        Total costs: <span id="total_cost_display">{{ total_cost|to0 }}</span><br>
+                        Total profit: <span id="total_profit_display">{{ total_profit|to0 }}</span>
                     </p>
                 </div>
                 <div class="card-footer text-muted text-center">
@@ -140,6 +140,7 @@
     nextButton.classList.remove("btn-primary");
     nextButton.classList.add("btn-danger");
     nextButton.innerText = "Leave the training round";
+    requestButton.disabled = true;
     
     window.setTimeout(function() {
         nextButton.style.display = "block";
@@ -162,10 +163,12 @@
         .on('finish.countdown', function () {
             startTimer.style.display = "none";
             oTreeTimer.style.display = "block";
+            requestButton.disabled = false;
             start_game();
         });
     } else {
         startTimer.style.display = "none";
+        requestButton.disabled = false;
         start_game();
     }
     
@@ -178,7 +181,7 @@
     };
     
     function start_game() {
-        random_request(5, 0.5)
+        random_request(5, 2)
         
         window.setInterval(function () {
             recalculate_balances();
@@ -216,10 +219,10 @@
     
     function update_display() {
         inventoryDisplay.innerHTML = mydata.inventory + " units";
-        balanceDisplay.innerHTML = mydata.balance.toFixed(2) + " ECU";
-        totalCostDisplay.innerHTML = mydata.total_cost.toFixed(2) + " ECU";
-        totalRevenueDisplay.innerHTML = mydata.total_revenue.toFixed(2) + " ECU";
-        totalProfitDisplay.innerHTML = mydata.total_profit.toFixed(2) + " ECU";
+        balanceDisplay.innerHTML = mydata.balance.toFixed(0) + " ECU";
+        totalCostDisplay.innerHTML = mydata.total_cost.toFixed(0) + " ECU";
+        totalRevenueDisplay.innerHTML = mydata.total_revenue.toFixed(0) + " ECU";
+        totalProfitDisplay.innerHTML = mydata.total_profit.toFixed(0) + " ECU";
     }
 
     function live_update_status(data) {

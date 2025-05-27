@@ -58,12 +58,12 @@
                 <div class="card-body outer_box">
                     <p>
                         Inventory: <span id="inventory_display">{{ inventory }}</span> units<br>
-                        Balance: <span id="balance_display">{{ balance|to2 }}</span>
+                        Balance: <span id="balance_display">{{ balance|to0 }}</span>
                     </p>
                     <p>
-                        Total earnings: <span id="total_revenue_display">{{ total_revenue|to2 }}</span><br>
-                        Total costs: <span id="total_cost_display">{{ total_cost|to2 }}</span><br>
-                        Total profit: <span id="total_profit_display">{{ total_profit|to2 }}</span>
+                        Total earnings: <span id="total_revenue_display">{{ total_revenue|to0 }}</span><br>
+                        Total costs: <span id="total_cost_display">{{ total_cost|to0 }}</span><br>
+                        Total profit: <span id="total_profit_display">{{ total_profit|to0 }}</span>
                     </p>
                 </div>
                 <div class="card-footer text-muted text-center">
@@ -200,10 +200,10 @@
     
     function update_display() {
         inventoryDisplay.innerHTML = mydata.inventory;
-        balanceDisplay.innerHTML = mydata.balance.toFixed(2);
-        totalCostDisplay.innerHTML = mydata.total_cost.toFixed(2);
-        totalRevenueDisplay.innerHTML = mydata.total_revenue.toFixed(2);
-        totalProfitDisplay.innerHTML = mydata.total_profit.toFixed(2);
+        balanceDisplay.innerHTML = mydata.balance.toFixed(0);
+        totalCostDisplay.innerHTML = mydata.total_cost.toFixed(0);
+        totalRevenueDisplay.innerHTML = mydata.total_revenue.toFixed(0);
+        totalProfitDisplay.innerHTML = mydata.total_profit.toFixed(0);
     }
 
     function live_update_status(data) {
@@ -281,7 +281,7 @@
             mydata.total_revenue = data['data']['revenue'];
             mydata.total_profit = data['data']['profit'];
             update_display();
-            console.log(data['data']['chain_inventory']);
+            // console.log(data['data']['chain_inventory']);
             update_inventories(data['data']["chain_inventory"]);
         }
     }
