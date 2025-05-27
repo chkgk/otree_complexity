@@ -5,7 +5,7 @@ GAME_CONFIG = dict(
     info_highlight_timeout_seconds=1,
     countdown_seconds=5,
     round_seconds=180,
-    payment_link="https://example.com/",
+    payment_link="https://fmru.az1.qualtrics.com/jfe/form/SV_4ZXrz1uGVKevsrA",
 )
 
 TRAINING_CONFIG = dict(
