@@ -137,7 +137,7 @@ def creating_session(subsession):
         # shuffled_player_list = shuffled(player_list)
         # gm = [list(group) for group in itertools.batched(shuffled_player_list, players_per_group)]
         # subsession.set_group_matrix(gm)
-        gm = subsession.get_group_matrix()
+        gm = subsession.in_round(1).get_group_matrix()
         new_gm = [shuffled(gr) for gr in gm]
         subsession.set_group_matrix(new_gm)
 
@@ -370,8 +370,9 @@ class RoundPreface(Page):
         return common_vars_for_template(player)
 
 class JointStart(WaitPage):
-    wait_for_all_groups = True
-    after_all_players_arrive = 'register_room'
+    pass
+    # wait_for_all_groups = True
+    # after_all_players_arrive = 'register_room'
 
 class Decision(Page):
     def get_timeout_seconds(player):
