@@ -138,7 +138,9 @@ def creating_session(subsession):
         # shuffled_player_list = shuffled(player_list)
         # gm = [list(group) for group in itertools.batched(shuffled_player_list, players_per_group)]
         # subsession.set_group_matrix(gm)
-        subsession.group_like_round(1)
+        gm = subsession.get_group_matrix()
+        new_gm = [shuffled(gr) for gr in gm]
+        subsession.set_group_matrix(new_gm)
 
 
     if any([len(var) != players_per_group for var in [initial_stock_rounds[subsession.round_number - 1], initial_cash_rounds[subsession.round_number - 1]]]):
