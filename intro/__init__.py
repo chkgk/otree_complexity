@@ -127,6 +127,9 @@ class GameInstructions(Page):
         initial_cash_rounds = sess.config.get('initial_cash', None)
         initial_cash_rounds = [[int(x.strip()) for x in blocks.split(',')] for blocks in initial_cash_rounds.split(';')] if initial_cash_rounds else [[0]]
         initial_cash = initial_cash_rounds[0][0]
+
+        ecu_earn = sess.config.get('price_per_unit', "10").split(';')[0]
+        ecu_inventory_cost = sess.config.get('cost_per_second', "5").split(';')[0]
         
         return {
             'exchange_rate': f"100 ECU = {hundred_ecu:.2f} €",
@@ -135,8 +138,8 @@ class GameInstructions(Page):
             'DEBUG': DEBUG,
             'own_id_in_group': middle_pos,
             'ecu_endowment': initial_cash ,
-            'ecu_earn': sess.config.get('price_per_unit', 10),
-            'ecu_inventory_cost': sess.config.get('cost_per_second', 1),
+            'ecu_earn': ecu_earn,
+            'ecu_inventory_cost': ecu_inventory_cost,
             'round_seconds': sess.config.get('round_seconds', 30),
             'num_rounds': sess.config.get('num_rounds', 1),
             'training_round_seconds': sess.config.get('training_round_seconds', 30),
