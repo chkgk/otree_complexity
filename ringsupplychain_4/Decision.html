@@ -209,9 +209,9 @@
     
     function update_display() {
         inventoryDisplay.innerHTML = mydata.inventory;
-        balanceDisplay.innerHTML = mydata.balance.toFixed(0);
-        totalCostDisplay.innerHTML = mydata.total_cost.toFixed(0);
-        totalRevenueDisplay.innerHTML = mydata.total_revenue.toFixed(0);
+        balanceDisplay.innerHTML = mydata.balance.toFixed(0) + " ECU";
+        totalCostDisplay.innerHTML = mydata.total_cost.toFixed(0) + " ECU";
+        totalRevenueDisplay.innerHTML = mydata.total_revenue.toFixed(0) + " ECU";
         totalItemsSold.innerHTML = mydata.total_items_sold + " units";
         // totalProfitDisplay.innerHTML = mydata.total_profit.toFixed(0);
     }
