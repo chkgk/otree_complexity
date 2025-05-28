@@ -538,8 +538,8 @@ page_sequence = [
     Decision, 
     ResultsWait, 
     Results, 
-    BTRWait, 
-    BackToRoom
+    # BTRWait, 
+    # BackToRoom
 ]
 
 
