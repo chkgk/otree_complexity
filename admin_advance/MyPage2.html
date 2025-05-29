@@ -1,22 +1,25 @@
 {{ block title }}
-    Training
+    Instructions wait page 2
 {{ endblock }}
 
 {{ block content }}
 
+    {{ formfields }}
+    <p>
+        If you have any questions, please contact the experimenter via chat.<br>
+            Otherwise, please indicate that you are ready to continue by clicking the button below.
+    </p>
     <div class="mb-3" id="ready_button_box">
-        <p>
-            Are there further questions? Please write them in the chat and we will answer there. Otherwise, please click the button below to signal that you are ready for the first round. It will start when all participants are ready. 
-        </p>
         <button type="button" class="btn btn-primary" id="ready">
-            I am ready to continue with the experiment.
+             I am ready to continue with the experiment.
         </button>
     </div>
     
     {{ if view.is_debug }}
-        <p class="text-danger">The next button is only shown in debug mode:</p>
+        <p><em>The next button is only shown in debug mode</em></p>
         {{ next_button }}
     {{ endif }}
+
 {{ endblock }}
 
 {{ block scripts }}

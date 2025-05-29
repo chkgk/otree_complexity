@@ -1,6 +1,8 @@
 from otree.api import *
 from datetime import datetime
 from otree.settings import DEBUG
+import os
+import json
 
 doc = """
 Your app description
@@ -11,6 +13,8 @@ class C(BaseConstants):
     NAME_IN_URL = 'intro'
     PLAYERS_PER_GROUP = None
     NUM_ROUNDS = 1
+
+    ADVANCE_PAGES = ['ConsentRadboud', 'GameInstructions']
 
 
 class Subsession(BaseSubsession):
@@ -39,26 +43,73 @@ class Player(BasePlayer):
     future_research_use = models.BooleanField(widget=widgets.CheckboxInput)
     agree_to_participate = models.BooleanField(widget=widgets.CheckboxInput)
     confirm_info_reviewed_again = models.BooleanField(widget=widgets.CheckboxInput)
-    instructor_code_1 = models.IntegerField()
-    instructor_code_2 = models.IntegerField()
+    # instructor_code_1 = models.IntegerField()
+    # instructor_code_2 = models.IntegerField()
 
 
 # FUNCTIONS
+def vars_for_admin_report(subsession: Subsession):
+    s = subsession.session
+
+    player_states = dict()
+    for p in subsession.get_players():
+        player_states[p.id_in_subsession] = p.participant.pages_completed
+
+    return {
+        "rest_key": os.getenv('OTREE_REST_KEY', ''),
+        "session_code": s.code,
+        "advance_pages": json.dumps(s.advance_pages),
+        "player_states": json.dumps(player_states)
+    }
+
+
 def consent_given_error_message(player, value):
     if not value:
         return "You must agree to participate in the experiment. If you do not agree, please contact the experimenter."
     return None
 
-def instructor_code_1_error_message(player, value):
-    if value != 17:
-        return "Please enter the correct instructor code."
+# def instructor_code_1_error_message(player, value):
+#     if value != 17:
+#         return "Please enter the correct instructor code."
+#     return None
+# 
+# def instructor_code_2_error_message(player, value):
+#     if value != 6:
+#         return "Please enter the correct instructor code."
+#     return None
+
+
+def ensure_page_completed(player: Player, current_page_name=None):
+    participant = player.participant
+    if current_page_name is None:
+        current_page_name = participant._current_page_name
+
+    if current_page_name not in participant.pages_completed:
+        participant.pages_completed.append(current_page_name)
+
+
+def live_page_advance_check(player, data):
+    current_page_name = player.participant._current_page_name
+    ensure_page_completed(player, current_page_name)
+
+    if player.session.advance_pages.get(current_page_name, False):
+        return {0: {'advance': current_page_name}}
     return None
 
-def instructor_code_2_error_message(player, value):
-    if value != 6:
-        return "Please enter the correct instructor code."
-    return None
 
+def add_pages_to_session_vars(subsession, add_pages):
+    session_advance_pages = subsession.session.vars.get("advance_pages", dict())
+    for page in add_pages:
+        if page not in session_advance_pages:
+            session_advance_pages[page] = False
+
+    subsession.session.advance_pages = session_advance_pages
+
+
+def creating_session(subsession: Subsession):
+    add_pages_to_session_vars(subsession, C.ADVANCE_PAGES)
+    for p in subsession.get_players():
+        p.participant.pages_completed = list()
 
 # PAGES
 
@@ -85,16 +136,9 @@ class ConsentRadboud(Page):
         'future_research_use',
         'agree_to_participate',
         'confirm_info_reviewed_again',
-        'instructor_code_1'
+        # 'instructor_code_1'
     ]
     
-    def vars_for_template(player):
-        return {
-            'consent_date': datetime.now().strftime("%Y-%m-%d"),
-            'participation_fee': player.session.config.get('participation_fee', '0.00 EUR'),
-            'DEBUG': DEBUG
-        }
-
     def error_message(self, values):
         required_checks = [
             'confirm_read_understood',
@@ -110,11 +154,32 @@ class ConsentRadboud(Page):
         if unchecked:
             return "You must check all boxes to continue."
         return None
-
-class GameInstructions(Page):
-    form_model = 'player'
-    form_fields = ['instructor_code_2']
     
+    def vars_for_template(player):
+        return {
+            'consent_date': datetime.now().strftime("%Y-%m-%d"),
+            'participation_fee': player.session.config.get('participation_fee', '0.00 EUR'),
+            'DEBUG': DEBUG
+        }
+
+    @staticmethod
+    def js_vars(player):
+        return {
+            "player_id": player.id_in_group,
+            "current_page_name": player.participant._current_page_name
+        }
+
+    @staticmethod
+    def live_method(player, data):
+        return live_page_advance_check(player, data)
+
+    @staticmethod
+    def before_next_page(player, timeout_happened):
+        ensure_page_completed(player)
+
+    
+
+class GameInstructions(Page):  
     def vars_for_template(player):
         sess = player.session
         rwc_pp = sess.config.get('real_world_currency_per_point', 0.01)
@@ -145,6 +210,15 @@ class GameInstructions(Page):
             'training_round_seconds': sess.config.get('training_round_seconds', 30),
         }
     
+    @staticmethod
+    def live_method(player, data):
+        return live_page_advance_check(player, data)
+
+    @staticmethod
+    def before_next_page(player, timeout_happened):
+        ensure_page_completed(player)
+    
+    @staticmethod
     def js_vars(player):
         players_per_group = player.session.config.get('players_per_group', 5)
         half = players_per_group // 2
@@ -152,6 +226,8 @@ class GameInstructions(Page):
         return {
             'own_id_in_group': middle_pos,
             'players_per_group': players_per_group,
+            "player_id": player.id_in_group,
+            "current_page_name": player.participant._current_page_name
         }
 
 page_sequence = [

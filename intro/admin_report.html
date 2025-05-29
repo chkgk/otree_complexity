@@ -1,0 +1,103 @@
+<div id="buttons"></div>
+
+<table id="state_table" class="table table-striped">
+    <thead id="state_table_head">
+    </thead>
+    <tbody id="state_table_body">
+        <!-- Player states will be populated here -->
+    </tbody>
+    
+</table>
+
+
+<script>
+    let pages = JSON.parse('{{ advance_pages }}');
+    let player_states = JSON.parse('{{ player_states }}');
+    let state_table_head = document.getElementById('state_table_head');
+    let state_table_body = document.getElementById('state_table_body');
+    
+    // Fill table header
+    let trh = document.createElement('tr');
+    let pcol_name_h = document.createElement('th');
+    pcol_name_h.textContent = "Page";
+    trh.appendChild(pcol_name_h);
+    for (const [key, value] of Object.entries(player_states)) {
+        let pcol_player_h = document.createElement('th');
+        pcol_player_h.textContent = `P${key}`;
+        trh.appendChild(pcol_player_h)
+    }
+    let pcol_button_h = document.createElement('th');
+    pcol_button_h.textContent = "Next Page?";
+    trh.appendChild(pcol_button_h);
+    state_table_head.appendChild(trh);
+
+    // Fill table body
+    for (const [page_name, value] of Object.entries(pages)) {
+        let trb = document.createElement('tr');
+        let pcol_name = document.createElement('td');
+        pcol_name.textContent = page_name;
+        trb.appendChild(pcol_name)
+        
+        for (const [key, value] of Object.entries(player_states)) {
+            let pcol_player = document.createElement('td');
+            let content = value.indexOf(page_name) !== -1 ? '✔️' : '❌';
+            pcol_player.textContent = content;
+            trb.appendChild(pcol_player)
+        }
+        
+        let pcol_button = document.createElement('td');
+        let button = document.createElement('button');
+        button.type = 'button';
+        button.id = `advance_${page_name}`;
+        button.classList.add('btn', 'btn-primary', 'advance_button');
+        button.textContent = `Continue`;
+        if (value === true) {
+            button.disabled = true;
+        }
+        button.addEventListener('click', function () {
+            advance_page(page_name);
+        });
+        pcol_button.appendChild(button);
+        trb.appendChild(pcol_button);
+        state_table_body.appendChild(trb);
+    }
+
+    // check if any of the values in player_states are null 
+    let time_out = window.setTimeout(function () {
+        window.location.reload();
+    }, 5000);
+    
+    
+    function advance_page(page_name) {
+        window.clearTimeout(time_out);
+        const protocol = window.location.protocol;
+        const hostname = window.location.hostname;
+        let port = window.location.port;
+        if (port === '') {
+            port = protocol === 'https:' ? '443' : '80';
+        }
+        const url = protocol + '//' + hostname + ':' + port;
+        const endpoint = "session_vars";
+
+        const rest_key = "{{ rest_key }}";
+        const session_code = "{{ session_code }}";
+        
+        pages[`${page_name}`] = true;
+        let data = {"advance_pages": pages};
+        
+        const combined = url + '/api/' + endpoint + '/' + session_code;
+        console.log(combined);
+        fetch(combined, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'otree-rest-key': rest_key
+            },
+            body: JSON.stringify({"vars": data})
+        }).then(function (response) {
+            console.log(response);
+        }).then(function() {
+            window.location.reload();
+        });
+    }
+</script>

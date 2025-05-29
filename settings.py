@@ -225,7 +225,13 @@ SESSION_CONFIGS = [
     #     **GAME_CONFIG,
     #     **TRAINING_CONFIG,
     #     auto_play=True,
-    # )
+    # ),
+    dict(
+        name="admin_advance",
+        display_name="Admin Advance",
+        app_sequence=["admin_advance"],
+        num_demo_participants=3,
+    )
 ]
 
 # Rooms
@@ -245,8 +251,8 @@ SESSION_CONFIG_DEFAULTS = dict(
     real_world_currency_per_point=0.0016, participation_fee=5.00, doc=""
 )
 
-PARTICIPANT_FIELDS = ['game_rounds']
-SESSION_FIELDS = []
+PARTICIPANT_FIELDS = ['game_rounds', 'pages_completed']
+SESSION_FIELDS = ['advance_pages']
 
 # ISO-639 code
 # for example: de, fr, ja, ko, zh-hans

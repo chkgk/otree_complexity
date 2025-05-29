@@ -61,11 +61,41 @@
         On the following screen, you can experience the experimental environment and interface in training mode for {{ training_round_seconds }} seconds. This training mode is not payout-relevant. So, try as much as you can. Afterward, we will provide time for questions about the instructions before we start. 
     </p>
 
-    {{ formfield 'instructor_code_2' label='Please enter the code provided by the instructor:' }}
+    {# formfield 'instructor_code_2' label='Please enter the code provided by the instructor:' #}
 
-    {{ if DEBUG }}
-        <p class="text-danger">DEBUG MODE: The code is: 6</p>
+    <div class="mt-3 mb-3" id="ready_button_box">
+        <p>
+            If you have any questions, please contact the experimenter via chat.<br>
+            Otherwise, please indicate that you are ready to continue by clicking the button below.
+        </p>
+        <button type="button" class="btn btn-primary" id="ready">
+            I am ready to continue with the experiment.
+        </button>
+    </div>
+    
+    {{ if view.is_debug }}
+        <p class="text-danger">The next button is only shown in debug mode:</p>
+        {{ next_button }}
     {{ endif }}
 
-    {{ next_button }}
+{{ endblock }}
+
+{{ block scripts }}
+    <script>
+        let ready_to_advance = false;
+        document.getElementById('ready').addEventListener('click', function () {
+            document.getElementById('ready_button_box').innerHTML = '<p><em>Please wait for the experiment to continue</em></p>';
+            ready_to_advance = true;
+            window.setInterval(function () {
+                liveSend('advance?')
+            }, 5000);
+        });
+        
+        function liveRecv(data) {
+            if (data['advance'] === js_vars.current_page_name && ready_to_advance === true) {
+                document.getElementById('form').submit();
+            }
+        }
+
+    </script>
 {{ endblock }}
