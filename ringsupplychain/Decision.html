@@ -204,7 +204,7 @@
         mydata.total_cost = data['from_cost'];
         mydata.total_revenue = data['from_revenue'];
         mydata.total_profit = data['from_profit'];
-        mydata.total_items_sold += data['units'];
+        mydata.total_items_sold = data['from_revenue'] / js_vars.price_per_unit;
         update_display();
     }
     

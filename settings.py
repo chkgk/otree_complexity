@@ -69,7 +69,8 @@ SESSION_1 = dict(
     initial_cash="300, 300, 300, 300, 300; 300, 300, 300, 300, 300; 300, 300, 300, 300, 300; 300, 300, 300, 300, 300",
     cost_per_second="5; 5; 5; 5",
     price_per_unit="100; 100; 100; 100",
-    show_chain="False; False; False; True"
+    show_chain="False; False; False; True",
+    num_rounds=4
 )
 
 # INV_HI_S_INFO -> INV_HI_S -> INV_HI_A -> INV_LO_A
@@ -80,7 +81,8 @@ SESSION_2 = dict(
     initial_cash="300, 300, 300, 300, 300; 300, 300, 300, 300, 300; 300, 300, 300, 300, 300; 300, 300, 300, 300, 300",
     cost_per_second="5; 5; 5; 5",
     price_per_unit="100; 100; 100; 100",
-    show_chain="True; False; False; False"
+    show_chain="True; False; False; False",
+    num_rounds=4
 )
 
 # SESSION_3 = dict(

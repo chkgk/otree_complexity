@@ -295,6 +295,7 @@ def common_vars_for_template(player):
     return {
         'balance': player.balance,
         'inventory': int(player.inventory),
+        'price_per_unit': subs.price_per_unit,
         'total_cost': player.total_cost,
         'total_revenue': player.total_revenue,
         'total_profit': player.total_profit,
