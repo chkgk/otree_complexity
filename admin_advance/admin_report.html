@@ -27,7 +27,7 @@
         trh.appendChild(pcol_player_h)
     }
     let pcol_button_h = document.createElement('th');
-    pcol_button_h.textContent = "Advance";
+    pcol_button_h.textContent = "Next Page?";
     trh.appendChild(pcol_button_h);
     state_table_head.appendChild(trh);
 
@@ -50,7 +50,7 @@
         button.type = 'button';
         button.id = `advance_${page_name}`;
         button.classList.add('btn', 'btn-primary', 'advance_button');
-        button.textContent = `advance`;
+        button.textContent = `Continue`;
         if (value === true) {
             button.disabled = true;
         }
