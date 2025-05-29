@@ -151,8 +151,14 @@ SESSION_CONFIGS = [
     #     name="session_1_demo",
     #     display_name="Session 1 DECISION: INV_LO_A -> INV_HI_A -> INV_HI_S -> INV_HI_S_INFO",
     #     app_sequence=["ringsupplychain_4"],
-    #     num_demo_participants=5,
-    #     **SESSION_1,
+    #     num_demo_participants=3,
+    #     treatment="INV_LO_A; INV_HI_A; INV_HI_S; INV_HI_S_INFO",
+    #     players_per_group=3,
+    #     initial_stock="2, 2, 2; 1, 0, 0; 10, 0, 0; 2, 2, 2",
+    #     initial_cash="300, 300, 300; 300, 300, 300; 300, 300, 300; 300, 300, 300",
+    #     cost_per_second="5; 5; 5; 5",
+    #     price_per_unit="100; 100; 100; 100",
+    #     show_chain="False; False; False; True",
     #     **GAME_CONFIG,
     #     **TRAINING_CONFIG,
     #     auto_play=False,
@@ -219,7 +225,7 @@ SESSION_CONFIGS = [
     #     **GAME_CONFIG,
     #     **TRAINING_CONFIG,
     #     auto_play=True,
-    # ),
+    # )
 ]
 
 # Rooms

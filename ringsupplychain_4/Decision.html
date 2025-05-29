@@ -145,29 +145,30 @@
     const oTreeTimer = document.getElementsByClassName('otree-timer')[0];
     const startTimer = document.getElementsByClassName('start-timer')[0];
     
-    // setup timers
+    oTreeTimer.style.display = "none";
+    startTimer.style.display = "none";
     requestButton.disabled = true;
-    let currentDate = new Date();
-    let remainingTimeoutSeconds = {{ view.remaining_timeout_seconds()|json }};
-    let remainingSeconds = remainingTimeoutSeconds - js_vars.round_seconds;
-    let milliseconds = Math.floor(remainingSeconds * 1000);
-    if (remainingSeconds > 0) {
-        oTreeTimer.style.display = "none";
-        $('.start-timer__time-left').countdown(currentDate.valueOf() + milliseconds)
-        .on('update.countdown', function (event) {
-            // %-N is "Total count of minutes till the end, non-padded"
-            // %S is seconds left
-            var format = '%-N:%S';
-            $(this).html(event.strftime(format))
-        })
-        .on('finish.countdown', function () {
-            startTimer.style.display = "none";
+    
+    function prep_timer(delay_milliseconds) {
+        let currentDate = new Date();
+        if (delay_milliseconds > 0) {
+            startTimer.style.display = "block";
+            $('.start-timer__time-left').countdown(currentDate.valueOf() + delay_milliseconds)
+            .on('update.countdown', function (event) {
+                // %-N is "Total count of minutes till the end, non-padded"
+                // %S is seconds left
+                var format = '%-N:%S';
+                $(this).html(event.strftime(format))
+            })
+            .on('finish.countdown', function () {
+                startTimer.style.display = "none";
+                oTreeTimer.style.display = "block";
+                start_game();
+            });
+        } else {
             oTreeTimer.style.display = "block";
             start_game();
-        });
-    } else {
-        startTimer.style.display = "none";
-        start_game();
+        }
     }
     
     let mydata = {
@@ -266,12 +267,19 @@
     }
     
     function send_init() {
+        let current_time = new Date().getTime();
+        let start_time_proposal = current_time + 5000;
         liveSend({
             type: 'init',
+        });
+        liveSend({
+            type: 'start_time_proposal',
+            start_time: start_time_proposal
         });
     }
     
     function update_inventories(data) {
+        // console.log("Updating inventories: ", data);
         for (let player_id in data) {
             let inventory = data[player_id];
             let inventory_display = document.getElementById("p" + player_id + "_text");
@@ -280,10 +288,13 @@
     }
     
     function liveRecv(data) {
-        console.log("Received data: ", data["type"]);
+        // console.log("Received data: ", data["type"]);
         if (data['type'] === 'status') {
             live_update_status(data['data']);
         }
+        if (data['type'] === 'start_time_decision') {
+            start_time_received(data.start_time);
+        } 
         if (data['type'] === 'init_response') {
             mydata.balance = data['data']['balance'];
             mydata.inventory = data['data']['inventory'];
@@ -293,8 +304,17 @@
             mydata.total_items_sold = data['data']['items_sold'];
             update_display();
             // console.log(data['data']['chain_inventory']);
-            update_inventories(data['data']["chain_inventory"]);
+            if (js_vars.show_chain) {
+                update_inventories(data['data']["chain_inventory"]);
+            }
         }
+    }
+    
+    function start_time_received(start_time) {
+        let current_time = new Date().getTime();
+        let delay = start_time - current_time;
+        console.log('game start in ' + delay + ' ms');
+        prep_timer(delay);
     }
     
     function recalculate_balances() {

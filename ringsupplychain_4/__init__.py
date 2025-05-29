@@ -38,7 +38,7 @@ class Subsession(BaseSubsession):
 
 
 class Group(BaseGroup):
-    pass
+    start_time = models.FloatField()
 
 
 class Player(BasePlayer):
@@ -52,6 +52,8 @@ class Player(BasePlayer):
     total_revenue = models.CurrencyField(initial=0)
     total_profit = models.CurrencyField(initial=0)
     total_items_sold = models.IntegerField(initial=0)
+    
+    proposed_start_time = models.FloatField()
     
     def get_predecessor(self):
         if self.id_in_group == 1:
@@ -366,6 +368,67 @@ def register_room(subsession):
     room_name = room.name if room is not None else None
     subsession.room_name = room_name
 
+def start_time_check(player: Player, data):
+    current_time = time.time()
+    player.proposed_start_time = data['start_time']
+
+    subs = player.subsession
+    group_players = player.group.get_players()
+    proposed_start_times = list()
+    for p in group_players:
+        if p.field_maybe_none('proposed_start_time') is not None:
+            proposed_start_times.append(p.proposed_start_time)
+    
+    if len(proposed_start_times) == subs.players_per_group:
+        if player.group.field_maybe_none('start_time') is not None:
+            return {0: {
+                'type': 'start_time_decision',
+                'start_time': player.group.start_time
+            }
+        }
+        
+        decision_candidate = max(proposed_start_times)
+        if decision_candidate > current_time + subs.countdown_seconds:
+            selected_time = decision_candidate
+        else:
+             selected_time = current_time + subs.countdown_seconds
+
+        player.group.start_time = selected_time
+        
+        for p in group_players:
+            if p.field_maybe_none('last_inventory_update') is None:
+                p.last_inventory_update = selected_time
+    
+            Requests.create(
+                created=selected_time,
+                # init is trigged on page load, but the countdown starts after the page is loaded
+                session=subs,
+                group_id=p.group.id_in_subsession,
+                round=p.round_number,
+                requested_from_id=p.id_in_group,
+                requested_by_id=p.id_in_group,
+                units=0,
+                transferred=False,
+                from_inventory=0,
+                from_balance=0,
+                to_inventory=0,
+                to_balance=0,
+                kind='init'
+            )
+
+        return {0: {
+                'type': 'start_time_decision',
+                'start_time': selected_time
+            }
+        }
+    return None
+
+def handle_init(player):
+    current_time = time.time()
+    if player.field_maybe_none('init_time') is None:
+        player.init_time = current_time
+    return live_inventory(player)
+
 # PAGES
 class RoundPreface(Page):
     def vars_for_template(player):
@@ -397,35 +460,13 @@ class Decision(Page):
     @staticmethod
     def live_method(player, data):        
         if data['type'] == 'init':
-            # print('init by player', player.id_in_group, "group", player.group.id_in_subsession)
-            current_time = time.time()
-            if player.field_maybe_none('last_inventory_update') is None:
-                player.last_inventory_update = current_time
-            if player.field_maybe_none('init_time') is None:
-                player.init_time = current_time
-            
-            subs = player.subsession
-            Requests.create(
-                created=current_time + subs.countdown_seconds, # init is trigged on page load, but the countdown starts after the page is loaded
-                session=subs,
-                group_id=player.group.id_in_subsession,
-                round=player.round_number,
-                requested_from_id=player.id_in_group,
-                requested_by_id=player.id_in_group,
-                units=0,
-                transferred=False,
-                from_inventory=0,
-                from_balance=0,
-                to_inventory=0,
-                to_balance=0,
-                kind='init'
-            )
-            
-            return live_inventory(player)
+            return handle_init(player)
                         
         if data['type'] == 'request':
             return live_request(player, data['data'])
         
+        if data['type'] == 'start_time_proposal':
+            return start_time_check(player, data)
         return None
         
 class ResultsWait(WaitPage):
