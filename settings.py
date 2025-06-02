@@ -61,31 +61,137 @@ INV_HI_S_INFO = dict(
     show_chain="True"
 )
 
-# INV_LO_A -> INV_HI_A -> INV_HI_S -> INV_HI_S_INFO
+A_10_NT = dict(
+    treatment="A_10_NT",
+    players_per_group=5,
+    initial_stock="10, 0, 0, 0, 0",
+    initial_cash="300, 300, 300, 300, 300",
+    cost_per_second="5",
+    price_per_unit="100",
+    show_chain="False"
+)
+
+A_1_NT = dict(
+    treatment="A_1_NT",
+    players_per_group=5,
+    initial_stock="1, 0, 0, 0, 0",
+    initial_cash="300, 300, 300, 300, 300",
+    cost_per_second="5",
+    price_per_unit="100",
+    show_chain="False"
+)
+
+A_3_NT = dict(
+    treatment="A_3_NT",
+    players_per_group=5,
+    initial_stock="3, 0, 0, 0, 0",
+    initial_cash="300, 300, 300, 300, 300",
+    cost_per_second="5",
+    price_per_unit="100",
+    show_chain="False"
+)
+
+A_5_NT = dict(
+    treatment="A_1_NT",
+    players_per_group=5,
+    initial_stock="5, 0, 0, 0, 0",
+    initial_cash="300, 300, 300, 300, 300",
+    cost_per_second="5",
+    price_per_unit="100",
+    show_chain="False"
+)
+
+S_10_NT = dict(
+    treatment="S_10_NT",
+    players_per_group=5,
+    initial_stock="2, 2, 2, 2, 2",
+    initial_cash="300, 300, 300, 300, 300",
+    cost_per_second="5",
+    price_per_unit="100",
+    show_chain="False"
+)
+
+S_10_T = dict(
+    treatment="S_10_T",
+    players_per_group=5,
+    initial_stock="2, 2, 2, 2, 2",
+    initial_cash="300, 300, 300, 300, 300",
+    cost_per_second="5",
+    price_per_unit="100",
+    show_chain="True"
+)
+
+# A_10_NT -> S_10_NT -> A_1_NT
 SESSION_1 = dict(
-    treatment="INV_LO_A; INV_HI_A; INV_HI_S; INV_HI_S_INFO",
+    treatment="A_10_NT; S_10_NT; A_1_NT",
     players_per_group=5,
-    initial_stock="2, 2, 2, 2, 2; 1, 0, 0, 0, 0; 10, 0, 0, 0, 0; 2, 2, 2, 2, 2",
-    initial_cash="300, 300, 300, 300, 300; 300, 300, 300, 300, 300; 300, 300, 300, 300, 300; 300, 300, 300, 300, 300",
-    cost_per_second="5; 5; 5; 5",
-    price_per_unit="100; 100; 100; 100",
-    show_chain="False; False; False; True",
-    num_rounds=4
+    initial_stock="10, 0, 0, 0, 0; 2, 2, 2, 2, 2; 1, 0, 0, 0, 0",
+    initial_cash="300, 300, 300, 300, 300; 300, 300, 300, 300, 300; 300, 300, 300, 300, 300",
+    cost_per_second="5; 5; 5",
+    price_per_unit="100; 100; 100",
+    show_chain="False; False; False",
+    num_rounds=3
 )
 
-# INV_HI_S_INFO -> INV_HI_S -> INV_HI_A -> INV_LO_A
+# A_5_NT -> A_1_NT -> A_10_NT
 SESSION_2 = dict(
-    treatment="INV_HI_S_INFO; INV_HI_S; INV_HI_A; INV_LO_A",
+    treatment="A_5_NT; A_1_NT; A_10_NT",
     players_per_group=5,
-    initial_stock="2, 2, 2, 2, 2; 2, 2, 2, 2, 2; 10, 0, 0, 0, 0; 1, 0, 0, 0, 0",
-    initial_cash="300, 300, 300, 300, 300; 300, 300, 300, 300, 300; 300, 300, 300, 300, 300; 300, 300, 300, 300, 300",
-    cost_per_second="5; 5; 5; 5",
-    price_per_unit="100; 100; 100; 100",
-    show_chain="True; False; False; False",
-    num_rounds=4
+    initial_stock="5, 0, 0, 0, 0; 1, 0, 0, 0, 0; 10, 0, 0, 0, 0",
+    initial_cash="300, 300, 300, 300, 300; 300, 300, 300, 300, 300; 300, 300, 300, 300, 300",
+    cost_per_second="5; 5; 5",
+    price_per_unit="100; 100; 100",
+    show_chain="False; False; False",
+    num_rounds=3
+)
+# A_1_NT -> A_5_NT -> A_3_NT
+SESSION_3 = dict(
+    treatment="A_1_NT; A_5_NT; A_3_NT",
+    players_per_group=5,
+    initial_stock="1, 0, 0, 0, 0; 5, 0, 0, 0, 0; 3, 0, 0, 0, 0",
+    initial_cash="300, 300, 300, 300, 300; 300, 300, 300, 300, 300; 300, 300, 300, 300, 300",
+    cost_per_second="5; 5; 5",
+    price_per_unit="100; 100; 100",
+    show_chain="False; False; False",
+    num_rounds=3
 )
 
-# SESSION_3 = dict(
+# A_3_NT - A_10_NT - A_5_NT
+SESSION_4 = dict(
+    treatment="A_3_NT; A_10_NT; A_5_NT",
+    players_per_group=5,
+    initial_stock="3, 0, 0, 0, 0; 10, 0, 0, 0, 0; 5, 0, 0, 0, 0",
+    initial_cash="300, 300, 300, 300, 300; 300, 300, 300, 300, 300; 300, 300, 300, 300, 300",
+    cost_per_second="5; 5; 5",
+    price_per_unit="100; 100; 100",
+    show_chain="False; False; False",
+    num_rounds=3
+)
+
+# S_10_NT - A_3_NT - S_10_T
+SESSION_5 = dict(
+    treatment="S_10_NT; A_3_NT; S_10_T",
+    players_per_group=5,
+    initial_stock="2, 2, 2, 2, 2; 3, 0, 0, 0, 0; 2, 2, 2, 2, 2",
+    initial_cash="300, 300, 300, 300, 300; 300, 300, 300, 300, 300; 300, 300, 300, 300, 300",
+    cost_per_second="5; 5; 5",
+    price_per_unit="100; 100; 100",
+    show_chain="False; False; True",
+    num_rounds=3
+)
+
+# S_10_T - A_3_NT - S_10_NT
+SESSION_6 = dict(
+    treatment="S_10_T; A_3_NT; S_10_NT",
+    players_per_group=5,
+    initial_stock="2, 2, 2, 2, 2; 3, 0, 0, 0, 0; 2, 2, 2, 2, 2",
+    initial_cash="300, 300, 300, 300, 300; 300, 300, 300, 300, 300; 300, 300, 300, 300, 300",
+    cost_per_second="5; 5; 5",
+    price_per_unit="100; 100; 100",
+    show_chain="True; False; False",
+    num_rounds=3
+)
+    
 
 
 SESSION_CONFIGS = [
@@ -194,7 +300,7 @@ SESSION_CONFIGS = [
     # ),
     dict(
         name="session_1",
-        display_name="Session 1",
+        display_name="Session 1 (A_10_NT -> S_10_NT -> A_1_NT)",
         app_sequence=["intro", "training", "ringsupplychain_4", "questionnaires"],
         num_demo_participants=5,
         **SESSION_1,
@@ -204,10 +310,50 @@ SESSION_CONFIGS = [
     ),
     dict(
         name="session_2",
-        display_name="Session 2",
+        display_name="Session 2 (A_5_NT -> A_1_NT -> A_10_NT)",
         app_sequence=["intro", "training", "ringsupplychain_4", "questionnaires"],
         num_demo_participants=5,
         **SESSION_2,
+        **GAME_CONFIG,
+        **TRAINING_CONFIG,
+        auto_play=False,
+    ),
+    dict(
+        name="session_3",
+        display_name="Session 3 (A_1_NT -> A_5_NT -> A_3_NT)",
+        app_sequence=["intro", "training", "ringsupplychain_4", "questionnaires"],
+        num_demo_participants=5,
+        **SESSION_3,
+        **GAME_CONFIG,
+        **TRAINING_CONFIG,
+        auto_play=False,
+    ),
+    dict(
+        name="session_4",
+        display_name="Session 4 (A_3_NT -> A_10_NT -> A_5_NT)",
+        app_sequence=["intro", "training", "ringsupplychain_4", "questionnaires"],
+        num_demo_participants=5,
+        **SESSION_4,
+        **GAME_CONFIG,
+        **TRAINING_CONFIG,
+        auto_play=False,
+    ),
+    dict(
+        name="session_5",
+        display_name="Session 5 (S_10_NT -> A_3_NT -> S_10_T)",
+        app_sequence=["intro", "training", "ringsupplychain_4", "questionnaires"],
+        num_demo_participants=5,
+        **SESSION_5,
+        **GAME_CONFIG,
+        **TRAINING_CONFIG,
+        auto_play=False,
+    ),
+    dict(
+        name="session_6",
+        display_name="Session 6 (S_10_T -> A_3_NT -> S_10_NT)",
+        app_sequence=["intro", "training", "ringsupplychain_4", "questionnaires"],
+        num_demo_participants=5,
+        **SESSION_6,
         **GAME_CONFIG,
         **TRAINING_CONFIG,
         auto_play=False,
@@ -228,19 +374,20 @@ SESSION_CONFIGS = [
     #     **TRAINING_CONFIG,
     #     auto_play=True,
     # ),
-    dict(
-        name="admin_advance",
-        display_name="Admin Advance",
-        app_sequence=["admin_advance"],
-        num_demo_participants=3,
-    )
+    # dict(
+    #     name="admin_advance",
+    #     display_name="Admin Advance",
+    #     app_sequence=["admin_advance"],
+    #     num_demo_participants=3,
+    # )
 ]
 
 # Rooms
 ROOMS = [
     dict(
         name='room1',
-        display_name='Room 1'
+        display_name='Room 1',
+        participant_label_file='_rooms/room1.txt',
     )
 ]
 

@@ -100,6 +100,9 @@ def ensure_page_completed(player: Player, current_page_name=None):
     if current_page_name is None:
         current_page_name = participant._current_page_name
 
+    if 'pages_completed' not in participant.vars:
+        participant.vars['pages_completed'] = []
+
     if current_page_name not in participant.pages_completed:
         participant.pages_completed.append(current_page_name)
 

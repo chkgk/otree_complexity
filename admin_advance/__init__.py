@@ -1,6 +1,7 @@
 from otree.api import *
 import os
 import json
+import random
 
 doc = """
 Your app description
@@ -46,7 +47,10 @@ def ensure_page_completed(player: Player, current_page_name=None):
     participant = player.participant
     if current_page_name is None:
         current_page_name = participant._current_page_name
-        
+
+    if 'pages_completed' not in participant.vars:
+        participant.vars['pages_completed'] = []
+
     if current_page_name not in participant.pages_completed:
         participant.pages_completed.append(current_page_name)
 
@@ -87,6 +91,7 @@ class MyPage(Page):
     @staticmethod
     def before_next_page(player, timeout_happened):
         ensure_page_completed(player)
+        player.payoff = random.randint(1, 10)
         # make sure that if the first player leaves the page in debug, the others do not have to wait either.
         if player.id_in_group == 1:
             player.session.vars[f"advance_{player.participant._current_page_name}"] = True
