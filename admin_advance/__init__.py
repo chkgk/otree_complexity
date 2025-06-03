@@ -32,14 +32,17 @@ def vars_for_admin_report(subsession: Subsession):
     s = subsession.session
 
     player_states = dict()
+    player_labels = dict()
     for p in subsession.get_players():
         player_states[p.id_in_subsession] = p.participant.pages_completed
-    
+        player_labels[p.id_in_subsession] = p.participant.label
+
     return {
         "rest_key": os.getenv('OTREE_REST_KEY', ''),
         "session_code": s.code,
         "advance_pages": json.dumps(s.advance_pages),
-        "player_states": json.dumps(player_states)
+        "player_states": json.dumps(player_states),
+        "player_labels": json.dumps(player_labels),
     }
 
 # FUNCTIONS

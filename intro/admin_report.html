@@ -13,6 +13,7 @@
 <script>
     let pages = JSON.parse('{{ advance_pages }}');
     let player_states = JSON.parse('{{ player_states }}');
+    let player_labels = JSON.parse('{{ player_labels }}');
     let state_table_head = document.getElementById('state_table_head');
     let state_table_body = document.getElementById('state_table_body');
     
@@ -23,7 +24,12 @@
     trh.appendChild(pcol_name_h);
     for (const [key, value] of Object.entries(player_states)) {
         let pcol_player_h = document.createElement('th');
-        pcol_player_h.textContent = `P${key}`;
+        if (player_labels[key]) {
+            pcol_player_h.textContent = player_labels[key];
+        } else {
+            pcol_player_h.textContent = `P${key}`;
+        }
+        // pcol_player_h.textContent = `P${key}`;
         trh.appendChild(pcol_player_h)
     }
     let pcol_button_h = document.createElement('th');
