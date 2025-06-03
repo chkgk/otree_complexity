@@ -388,6 +388,11 @@ ROOMS = [
         name='room1',
         display_name='Room 1',
         participant_label_file='_rooms/room1.txt',
+    ),
+    dict(
+        name='room2',
+        display_name='Room 2',
+        participant_label_file='_rooms/room1.txt',
     )
 ]
 
