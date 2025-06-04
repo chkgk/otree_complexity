@@ -377,7 +377,7 @@ SESSION_CONFIGS = [
     # dict(
     #     name="admin_advance",
     #     display_name="Admin Advance",
-    #     app_sequence=["admin_advance"],
+    #     app_sequence=["admin_advance", "questionnaires"],
     #     num_demo_participants=3,
     # )
 ]
@@ -405,7 +405,7 @@ SESSION_CONFIG_DEFAULTS = dict(
     real_world_currency_per_point=0.0005, participation_fee=5.00, doc=""
 )
 
-PARTICIPANT_FIELDS = ['game_rounds', 'pages_completed']
+PARTICIPANT_FIELDS = ['game_rounds', 'pages_completed', 'finished']
 SESSION_FIELDS = ['advance_pages']
 
 # ISO-639 code

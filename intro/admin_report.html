@@ -14,8 +14,10 @@
     let pages = JSON.parse('{{ advance_pages }}');
     let player_states = JSON.parse('{{ player_states }}');
     let player_labels = JSON.parse('{{ player_labels }}');
+    let player_finished = JSON.parse('{{ player_finished }}');
     let state_table_head = document.getElementById('state_table_head');
     let state_table_body = document.getElementById('state_table_body');
+    
     
     // Fill table header
     let trh = document.createElement('tr');
@@ -67,6 +69,20 @@
         trb.appendChild(pcol_button);
         state_table_body.appendChild(trb);
     }
+    
+    // finished
+    let trb = document.createElement('tr');
+    let pcol_name = document.createElement('td');
+    pcol_name.textContent = "Finished?";
+    trb.appendChild(pcol_name)
+    
+    for (const [key, value] of Object.entries(player_finished)) {
+        let pcol_player = document.createElement('td');
+        let content = value === true ? '✔️' : '❌';
+        pcol_player.textContent = content;
+        trb.appendChild(pcol_player)
+    }
+    state_table_body.appendChild(trb);
 
     // check if any of the values in player_states are null 
     let time_out = window.setTimeout(function () {

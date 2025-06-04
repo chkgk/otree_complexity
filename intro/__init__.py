@@ -53,9 +53,12 @@ def vars_for_admin_report(subsession: Subsession):
 
     player_states = dict()
     player_labels = dict()
+    player_finished = dict()
     for p in subsession.get_players():
-        player_states[p.id_in_subsession] = p.participant.pages_completed
-        player_labels[p.id_in_subsession] = p.participant.label
+        part = p.participant
+        player_states[p.id_in_subsession] = part.pages_completed
+        player_labels[p.id_in_subsession] = part.label
+        player_finished[p.id_in_subsession] = part.vars.get('finished', False)
 
     return {
         "rest_key": os.getenv('OTREE_REST_KEY', ''),
@@ -63,6 +66,7 @@ def vars_for_admin_report(subsession: Subsession):
         "advance_pages": json.dumps(s.advance_pages),
         "player_states": json.dumps(player_states),
         "player_labels": json.dumps(player_labels),
+        "player_finished": json.dumps(player_finished)
     }
 
 

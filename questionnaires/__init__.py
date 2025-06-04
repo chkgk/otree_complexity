@@ -99,5 +99,8 @@ class FinalScreen(Page):
             'payment_link': payment_link,
             'round_payment_negative': player.eur_earnings < 0,
         }
+    
+    def before_next_page(player, timeout_happened):
+        player.participant.finished = True
 
 page_sequence = [Questionnaire, FinalScreen]
