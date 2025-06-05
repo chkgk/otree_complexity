@@ -195,66 +195,75 @@ SESSION_6 = dict(
 
 
 SESSION_CONFIGS = [
-    # dict(
-    #     name="intro",
-    #     display_name="Introduction",
-    #     app_sequence=["intro"],
-    #     num_demo_participants=1,
-    #     players_per_group=5,
-    #     initial_cash="30, 30, 30, 30, 30",
-    #     initial_stock="2, 2, 2, 2, 2",
-    #     show_chain=False,
-    #     **GAME_CONFIG,
-    #     **TRAINING_CONFIG
-    # ),
-    # dict(
-    #     name="training",
-    #     display_name="Training Round",
-    #     app_sequence=["training"],
-    #     num_demo_participants=1,
-    #     players_per_group=1,
-    #     **TRAINING_CONFIG
-    # ),
-    # dict(
-    #     name="inv_lo_a",
-    #     display_name="INV_LO_A (1,0,0,0,0 units; 300ecu; no info)",
-    #     app_sequence=["ringsupplychain"],
-    #     num_demo_participants=5, 
-    #     **INV_LO_A,
-    #     **GAME_CONFIG,
-    #     **TRAINING_CONFIG,
-    #     auto_play=False,
-    # ),
-    # dict(
-    #     name="inv_hi_a",
-    #     display_name="INV_HI_A (10,0,0,0,0 units; 300ecu; no info)",
-    #     app_sequence=["ringsupplychain"],
-    #     num_demo_participants=5, 
-    #     **INV_HI_A,
-    #     **GAME_CONFIG,
-    #     **TRAINING_CONFIG,
-    #     auto_play=False,
-    # ),
-    # dict(
-    #     name="inv_hi_s",
-    #     display_name="INV_HI_S (sym 2 units; 300ecu; no info)",
-    #     app_sequence=["ringsupplychain"],
-    #     num_demo_participants=5, 
-    #     **INV_HI_S,
-    #     **GAME_CONFIG,
-    #     **TRAINING_CONFIG,
-    #     auto_play=False,
-    # ),
-    # dict(
-    #     name="inv_hi_s_info",
-    #     display_name="INV_HI_S_INFO (sym 2 units; 300ecu; with info)",
-    #     app_sequence=["ringsupplychain"],
-    #     num_demo_participants=5, 
-    #     **INV_HI_S_INFO,
-    #     **GAME_CONFIG,
-    #     **TRAINING_CONFIG,
-    #     auto_play=False,
-    # ),
+    dict(
+        name="intro",
+        display_name="Introduction",
+        app_sequence=["intro"],
+        num_demo_participants=1,
+        players_per_group=5,
+        initial_cash="30, 30, 30, 30, 30",
+        initial_stock="2, 2, 2, 2, 2",
+        show_chain=False,
+        **GAME_CONFIG,
+        **TRAINING_CONFIG
+    ),
+    dict(
+        name="training",
+        display_name="Training Round",
+        app_sequence=["training"],
+        num_demo_participants=1,
+        players_per_group=1,
+        **TRAINING_CONFIG
+    ),
+    dict(
+        name="A_10_NT_demo",
+        app_sequence=["ringsupplychain"],
+        display_name="A_10_NT Demo",
+        num_demo_participants=5,
+        **GAME_CONFIG,
+        **A_10_NT
+    ),
+    dict(
+        name="A_1_NT_demo",
+        app_sequence=["ringsupplychain"],
+        display_name="A_1_NT Demo",
+        num_demo_participants=5,
+        **GAME_CONFIG,
+        **A_1_NT
+    ),
+    dict(
+        name="A_3_NT_demo",
+        app_sequence=["ringsupplychain"],
+        display_name="A_3_NT Demo",
+        num_demo_participants=5,
+        **GAME_CONFIG,
+        **A_3_NT
+    ),
+    dict(
+        name="A_5_NT_demo",
+        app_sequence=["ringsupplychain"],
+        display_name="A_5_NT Demo",
+        num_demo_participants=5,
+        **GAME_CONFIG,
+        **A_5_NT
+    ),
+    dict(
+        name="S_10_NT_demo",
+        app_sequence=["ringsupplychain"],
+        display_name="S_10_NT Demo",
+        num_demo_participants=5,
+        **GAME_CONFIG,
+        **S_10_NT
+    ),
+    dict(
+        name="S_10_T_demo",
+        app_sequence=["ringsupplychain"],
+        display_name="S_10_T Demo",
+        num_demo_participants=5,
+        **GAME_CONFIG,
+        **S_10_T
+    ),
+    
     # dict(
     #     name="session_1_demo",
     #     display_name="Session 1 DECISION: INV_LO_A -> INV_HI_A -> INV_HI_S -> INV_HI_S_INFO",
@@ -281,13 +290,13 @@ SESSION_CONFIGS = [
     #     **TRAINING_CONFIG,
     #     auto_play=False,
     # ),
-    # dict(
-    #     name="questionnaire",
-    #     display_name="Final Questionnaire + Payments",
-    #     app_sequence=["questionnaires"],
-    #     num_demo_participants=1,
-    #     **GAME_CONFIG
-    # ),
+    dict(
+        name="questionnaire",
+        display_name="Final Questionnaire + Payments",
+        app_sequence=["questionnaires"],
+        num_demo_participants=1,
+        **GAME_CONFIG
+    ),
     # dict(
     #     name="complete_demo_single",
     #     display_name="Experiment Demo: INV_HI_S",
