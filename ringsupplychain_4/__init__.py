@@ -20,6 +20,8 @@ class C(BaseConstants):
 
 
 class Subsession(BaseSubsession):
+    # We store most configuration variables in the subsession, because they can vary by round
+    # these variables are set in creating_session
     players_per_group = models.IntegerField()
     initial_stock = models.StringField()
     initial_cash = models.StringField()
@@ -34,7 +36,6 @@ class Subsession(BaseSubsession):
     info_highlight_timeout_seconds = models.IntegerField()
     countdown_seconds = models.IntegerField()
     treatment = models.StringField()
-
 
 
 class Group(BaseGroup):
@@ -62,6 +63,8 @@ class Player(BasePlayer):
             return self.id_in_group - 1
     
 class Requests(ExtraModel):
+    # We use this model to store all requests made by players
+    # This allows us to analyze the data later in more detail
     created = models.FloatField()
     session = models.Link(Subsession)
     group_id = models.IntegerField()
@@ -79,10 +82,28 @@ class Requests(ExtraModel):
 
 # FUNCTIONS
 def shuffled(l):
+    # Helper function to shuffle a list and return the shuffled list
     random.shuffle(l)
     return l
 
+# At some point we discussed being able to flexibly choose the treatments for each round
+# This is not readily available in oTree, so the workaround was to return participants to an oTree room / lobby
+# to wait for the next session to start. I implemented this features here, but we ultimately decided not to use it.
+def close_room(subsession):
+    # This function makes sure the room is closed, i.e. it does not have an active session.
+    room = subsession.session.get_room()
+    if room is not None:
+        room.set_session(None)
+
+def register_room(subsession):
+    # This function registers lets us know which room the session is running in, if any.
+    room = subsession.session.get_room()
+    room_name = room.name if room is not None else None
+    subsession.room_name = room_name
+
+
 def creating_session(subsession):
+    # When a session is created, we look up the configuration values in the session config and store it in th session
     sess = subsession.session
     players_per_group = sess.config.get('players_per_group', None)
     initial_stock = sess.config.get('initial_stock', None)
@@ -98,10 +119,13 @@ def creating_session(subsession):
     total_seconds = countdown_seconds + round_seconds
     treatment = sess.config.get('treatment', None)
     
+    # If any of the required variables are not set, raise an error
     if any(var is None for var in [players_per_group, initial_stock, initial_cash, cost_per_second, price_per_unit, round_seconds, show_chain, request_timeout_seconds, info_highlight_timeout_seconds, countdown_seconds, treatment]):
         raise ValueError("session not configured correctly")
     
-    # if it is not a list, make it a list
+    # There are two ways to specify the length of a round.
+    # If a single integer is given, we use it for all rounds,
+    # Otherwise, if a list is given, we use the respective entry for each round.
     if type(round_seconds) is not list:
         round_seconds = [round_seconds] * C.NUM_ROUNDS
     
@@ -129,6 +153,7 @@ def creating_session(subsession):
     subsession.countdown_seconds = countdown_seconds
     
     player_list = subsession.get_players()
+    
     # match groups
     if subsession.round_number == 1:
         # check if the number of players is divisible by the number of players per group
@@ -141,11 +166,13 @@ def creating_session(subsession):
         # gm = [list(group) for group in itertools.batched(shuffled_player_list, players_per_group)]
         # subsession.set_group_matrix(gm)
         # subsession.group_like_round(1)
+        
+        # We decided to keep the same groups for all rounds, but shuffle the positions within the group
         gm = subsession.in_round(1).get_group_matrix()
         new_gm = [shuffled(gr) for gr in gm]
         subsession.set_group_matrix(new_gm)
 
-
+    # double-check whether the initial stock and cash lists are of the correct length
     if any([len(var) != players_per_group for var in [initial_stock_rounds[subsession.round_number - 1], initial_cash_rounds[subsession.round_number - 1]]]):
         raise ValueError("initial_total_stock and initial_total_cash must be of length players_per_group")
 
@@ -154,18 +181,25 @@ def creating_session(subsession):
         player.inventory = int(initial_stock_rounds[subsession.round_number - 1][player.id_in_group - 1])
         player.balance = cu(initial_cash_rounds[subsession.round_number - 1][player.id_in_group - 1])
 
+
 def live_inventory(player):
+    # Whenever the player loads or re-loads the decision page, we need to make sure they get the latest inventory and balance
+    # Note:
+    # This seems redundant at first, because we basically do the same calculations as in live_request and on the client side
+    # However, it is necessary to do this here, because the player might reload the page or mess with the client-side code
+    # Generally, we can never trust data that comes from the browser / client side, so we need to do the calculations on the server side as well.
+    
+    # First: calculate costs since last update
     # get current time
     current_time = time.time()
 
-    # get time delta
+    # get time delta to last inventory update
     last_inventory_time = player.field_maybe_none('last_inventory_update')
     if last_inventory_time is None:
         last_inventory_time = current_time
     time_delta = current_time - last_inventory_time
     
-
-    # calculate cost
+    # calculate cost incurred since last update
     old_inventory = player.inventory
     cost = time_delta * player.subsession.cost_per_second * old_inventory
 
@@ -178,9 +212,10 @@ def live_inventory(player):
     # update profit
     player.total_profit = player.total_revenue - player.total_cost
 
-    # update last inventory update time
+    # update last inventory update time to the current time
     player.last_inventory_update = current_time
 
+    # send the current status to the player's page
     resp = {
         'type': 'init_response',
         'data': {
@@ -197,6 +232,9 @@ def live_inventory(player):
     return {player.id_in_group: resp}
 
 def live_request(player, data):
+    # This function is triggered when a player sends a request for units to their predecessor
+    
+    # identify player to take from and the number of units requested
     take_from = player.get_predecessor()
     units = data['units']
 
@@ -227,12 +265,12 @@ def live_request(player, data):
         to_cost = to_time_delta * subsession.cost_per_second * to_old_inventory
         give_to_player.total_cost += to_cost
 
-        # update inventory 
+        # update inventories 
         take_from_player.inventory -= units
         take_from_player.total_items_sold += units
         give_to_player.inventory += units
         
-        # update balance and revenue
+        # update balances and revenues
         from_revenue = units * subsession.price_per_unit
         from_balance_change = from_revenue - from_cost
         take_from_player.balance += from_balance_change
@@ -241,17 +279,17 @@ def live_request(player, data):
         to_balance_change = -1 * to_cost
         give_to_player.balance += to_balance_change
         
-        # update profit
+        # update profits
         take_from_player.total_profit = take_from_player.total_revenue - take_from_player.total_cost
         give_to_player.total_profit = give_to_player.total_revenue - give_to_player.total_cost
         
-        # update last inventory update time
+        # update last inventory update times
         take_from_player.last_inventory_update = current_time
         give_to_player.last_inventory_update = current_time
         
         transferred = True
         
-    # request record
+    # We store every single request made in the Requests model for later analysis
     Requests.create(
         created=current_time,
         session=take_from_player.subsession,
@@ -267,6 +305,8 @@ def live_request(player, data):
         to_balance=give_to_player.balance,
     )
     
+    # Send a status update to all players in the group, clearly identifying who requested / transferred how many units 
+    # from whom to whom, and what the resulting inventories and balances are.
     resp = {
         'type': 'status',
         'data': {
@@ -291,6 +331,8 @@ def live_request(player, data):
     return {0: resp}
 
 def common_vars_for_template(player):
+    # Some variables are needed both in the template and in the javascript on the template
+    # To avoid repeating ourselves, we define a function that returns all these variables in a dictionary
     subs = player.subsession
     return {
         'balance': player.balance,
@@ -312,6 +354,9 @@ def common_vars_for_template(player):
     }
 
 def finalize_round(group):
+    # At the end of the round, we need to make sure that we account for any costs incurred since the last inventory update
+    # This is similar to what we do in live_inventory, but we need to make sure we do it for all players in the group.
+    
     subs = group.subsession
     round_seconds = subs.round_seconds
     cost_per_second = subs.cost_per_second
@@ -326,10 +371,6 @@ def finalize_round(group):
             last_update = 0
         time_to_end_of_round = end_time - last_update
         
-        # print('init_time', init_time)
-        # print('end_time', end_time)
-        # print('last_update', last_update)
-        # print('time_to_end_of_round', time_to_end_of_round)
         # if there was time left between last update and the expected end of round, we need to account for costs.
         if time_to_end_of_round > 0:
             # calculate cost
@@ -341,11 +382,6 @@ def finalize_round(group):
             player.balance -= cost
             player.total_profit = player.total_revenue - player.total_cost
             
-            # print('old_inventory', old_inventory)
-            # print('cost', cost)
-            # print('total_cost', player.total_cost)
-            # print('balance', player.balance)
-            # print('total_profit', player.total_profit)
         
         # store payment data on the participant
         game_data = {
@@ -353,26 +389,23 @@ def finalize_round(group):
             'eur_earnings': float(player.total_profit.to_real_world_currency(subs.session)),
             'round': player.round_number
         }
+        
         if player.round_number == 1:
             player.participant.vars['game_rounds'] = [game_data]
         else:
             player.participant.vars['game_rounds'].append(game_data)
-        
-
-def close_room(subsession):
-    room = subsession.session.get_room()
-    if room is not None:
-        room.set_session(None)
-        
-def register_room(subsession):
-    room = subsession.session.get_room()
-    room_name = room.name if room is not None else None
-    subsession.room_name = room_name
+    
 
 def start_time_check(player: Player, data):
+    # This function implements the logic to determine the start time of the round
+    # Each player proposes a start time, and when all players have proposed a time, the
+    # maximum of these times is taken as the start time, unless there is not enough time left to communicate 
+    # it to all players, in which case the start time is set to "current time + countdown_seconds".
+    
     current_time = time.time()
     player.proposed_start_time = data['start_time']
 
+    # Here we basically make a list of proposed start times from all players in the group
     subs = player.subsession
     group_players = player.group.get_players()
     proposed_start_times = list()
@@ -380,7 +413,9 @@ def start_time_check(player: Player, data):
         if p.field_maybe_none('proposed_start_time') is not None:
             proposed_start_times.append(p.proposed_start_time)
     
+    # if all players have proposed a start time, we can determine the actual start time
     if len(proposed_start_times) == subs.players_per_group:
+        # if the start time has already been set, we just return it
         if player.group.field_maybe_none('start_time') is not None:
             return {0: {
                 'type': 'start_time_decision',
@@ -388,14 +423,17 @@ def start_time_check(player: Player, data):
             }
         }
         
+        # if it has not been set, we determine it now
         decision_candidate = max(proposed_start_times)
         if decision_candidate > current_time + subs.countdown_seconds:
             selected_time = decision_candidate
         else:
-             selected_time = current_time + subs.countdown_seconds
+            selected_time = current_time + subs.countdown_seconds
 
+        # store the selected start time
         player.group.start_time = selected_time
         
+        # create an "init" request for each player, which is used to trigger the countdown on the client side
         for p in group_players:
             if p.field_maybe_none('last_inventory_update') is None:
                 p.last_inventory_update = selected_time
@@ -425,6 +463,9 @@ def start_time_check(player: Player, data):
     return None
 
 def handle_init(player):
+    # This function stores when the player first loaded the decision page
+    # This is important to calculate the end of round time correctly
+    # It prevents players from re-loading the page to reset their round time
     current_time = time.time()
     if player.field_maybe_none('init_time') is None:
         player.init_time = current_time
@@ -446,6 +487,8 @@ class Decision(Page):
     
     @staticmethod
     def js_vars(player):
+        # There is some data that we need to provide both to the template in for the javascript on the template
+        # We largely use a "common vars for template" function to avoid repeating ourselves
         return {
             'own_id_in_group': player.id_in_group,
             'inventory_unit_cost_per_second': player.subsession.cost_per_second,
@@ -459,13 +502,16 @@ class Decision(Page):
         }
     
     @staticmethod
-    def live_method(player, data):        
+    def live_method(player, data):
+        # If the page is loaded, it sends the "init" message to the server, which triggers the init handling
         if data['type'] == 'init':
             return handle_init(player)
                         
+        # If the player sends a request message, we handle it here
         if data['type'] == 'request':
             return live_request(player, data['data'])
         
+        # If the player sends a proposed start time, we handle it here
         if data['type'] == 'start_time_proposal':
             return start_time_check(player, data)
         return None
@@ -494,6 +540,9 @@ class Results(Page):
             **cv
         }
 
+# These Back to Room (BTR) Pages are not currently in use
+# We decided not to implement the feature of returning to a lobby / room between rounds
+# but I am keeping the code here in case we want to use it in the future
 class BTRWait(WaitPage):
     wait_for_all_groups = True
     after_all_players_arrive = 'close_room'
@@ -513,7 +562,8 @@ class BackToRoom(Page):
             'room_url': room_url,
         }
         
-
+# At some point we discussed showing players a figure of their balance and inventory over time
+# We decided not to use this feature, but I am keeping the code here in case we want to use it in the future
 class ResultsFigure(Page):
     def js_vars(player):
         subs = player.subsession

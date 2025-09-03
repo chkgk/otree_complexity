@@ -43,8 +43,6 @@ class Player(BasePlayer):
     future_research_use = models.BooleanField(widget=widgets.CheckboxInput)
     agree_to_participate = models.BooleanField(widget=widgets.CheckboxInput)
     confirm_info_reviewed_again = models.BooleanField(widget=widgets.CheckboxInput)
-    # instructor_code_1 = models.IntegerField()
-    # instructor_code_2 = models.IntegerField()
 
 
 # FUNCTIONS
@@ -75,39 +73,38 @@ def consent_given_error_message(player, value):
         return "You must agree to participate in the experiment. If you do not agree, please contact the experimenter."
     return None
 
-# def instructor_code_1_error_message(player, value):
-#     if value != 17:
-#         return "Please enter the correct instructor code."
-#     return None
-# 
-# def instructor_code_2_error_message(player, value):
-#     if value != 6:
-#         return "Please enter the correct instructor code."
-#     return None
-
 
 def ensure_page_completed(player: Player, current_page_name=None):
+    # This function ensures that the current page is marked as completed in participant.vars['pages_completed']
+    
+    # Get the participant and the current plage name
     participant = player.participant
     if current_page_name is None:
         current_page_name = participant._current_page_name
 
+    # Initialize pages_completed if it doesn't exist#
     if 'pages_completed' not in participant.vars:
         participant.vars['pages_completed'] = []
         
+    # Add the current page to pages_completed if not already present
     if current_page_name not in participant.pages_completed:
         participant.pages_completed.append(current_page_name)
 
 
 def live_page_advance_check(player, data):
+    # This function checks if the current page is in the session's advance_pages and if it should be advanced
     current_page_name = player.participant._current_page_name
     ensure_page_completed(player, current_page_name)
 
+    # If the current page is in advance_pages and is marked True, return the advance signal
     if player.session.advance_pages.get(current_page_name, False):
         return {0: {'advance': current_page_name}}
     return None
 
 
 def add_pages_to_session_vars(subsession, add_pages):
+    # This function adds pages to the session's advance_pages dict if they are not already present
+    # This is useful so that the admin page can show pages from all apps
     session_advance_pages = subsession.session.vars.get("advance_pages", dict())
     for page in add_pages:
         if page not in session_advance_pages:
@@ -123,6 +120,7 @@ def creating_session(subsession: Subsession):
 
 # PAGES
 
+# Not currently used, but can be used to show a demo of the supply chain figure
 class FigureDemo(Page):
     def js_vars(player):
         return {
@@ -146,7 +144,6 @@ class ConsentRadboud(Page):
         'future_research_use',
         'agree_to_participate',
         'confirm_info_reviewed_again',
-        # 'instructor_code_1'
     ]
     
     def error_message(self, values):
@@ -187,7 +184,6 @@ class ConsentRadboud(Page):
     def before_next_page(player, timeout_happened):
         ensure_page_completed(player)
 
-    
 
 class GameInstructions(Page):  
     def vars_for_template(player):
