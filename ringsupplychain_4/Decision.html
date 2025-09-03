@@ -112,8 +112,6 @@
 <script src="{{ static 'chain/highlighting.js' }}"></script>
 <script src="{{ static 'chain/draw.js' }}"></script>
 <script>
-    // These two functions implement the Box-Muller transform to generate normally distributed random numbers
-    // This is used for the auto-play feature to simulate player requests at random intervals
     function boxMullerTransform() {
         const u1 = Math.random();
         const u2 = Math.random();
@@ -151,63 +149,6 @@
     startTimer.style.display = "none";
     requestButton.disabled = true;
     
-    // This object holds all the data about the player that we need to keep track of
-    // It is initialized with values passed from the server via js_vars
-    let mydata = {
-        "inventory": js_vars.inventory,
-        "balance": js_vars.balance,
-        "total_cost": js_vars.total_cost,
-        "total_revenue": js_vars.total_revenue,
-        "total_profit": js_vars.total_profit,
-        "total_items_sold": js_vars.total_items_sold
-    };
-    
-    // this function sends two messages to the server:
-    // 1. 'init' to initialize the player data
-    // 2. 'start_time_proposal' to propose a start time for the game
-    // The proposed start time is 5 seconds from the current time
-    // Background: We want all players to start at the same time, but pages might take different times to load
-    // So every player proposes a start time in the near future, and the server decides on one of these proposals
-    function send_init() {
-        let current_time = new Date().getTime();
-        let start_time_proposal = current_time + 5000;
-        liveSend({
-            type: 'init',
-        });
-        liveSend({
-            type: 'start_time_proposal',
-            start_time: start_time_proposal
-        });
-    }
-
-    // This function is called whenever we receive a message from the server
-    function liveRecv(data) {
-        // Whenever any inventories change, the server sends a status message containing the new inventories
-        if (data['type'] === 'status') {
-            live_update_status(data['data']);
-        }
-        // When the game starts, the server sends a start_time_decision message containing the agreed start time
-        if (data['type'] === 'start_time_decision') {
-            start_time_received(data.start_time);
-        } 
-        // When we initialize, the server sends an init_response message containing our initial inventory data
-        if (data['type'] === 'init_response') {
-            mydata.balance = data['data']['balance'];
-            mydata.inventory = data['data']['inventory'];
-            mydata.total_cost = data['data']['cost'];
-            mydata.total_revenue = data['data']['revenue'];
-            mydata.total_profit = data['data']['profit'];
-            mydata.total_items_sold = data['data']['items_sold'];
-            update_display();
-            // console.log(data['data']['chain_inventory']);
-            if (js_vars.show_chain) {
-                update_inventories(data['data']["chain_inventory"]);
-            }
-        }
-    }
-    
-    // The decision page shows a timer before the game starts, then switches to the main otree timer
-    // If the page is reloaded, we make sure not to display the start timer again but immediately show the otree timer
     function prep_timer(delay_milliseconds) {
         let currentDate = new Date();
         if (delay_milliseconds > 0) {
@@ -230,8 +171,15 @@
         }
     }
     
-    // When the request button is clicked, it is disabled for a certain timeout period
-    // This is to prevent players from spamming the button
+    let mydata = {
+        "inventory": js_vars.inventory,
+        "balance": js_vars.balance,
+        "total_cost": js_vars.total_cost,
+        "total_revenue": js_vars.total_revenue,
+        "total_profit": js_vars.total_profit,
+        "total_items_sold": js_vars.total_items_sold
+    };
+    
     function timeout_request_button(timeout_seconds) {
         requestButton.disabled = true;
         requestButton.innerHTML = "Please Wait";
@@ -241,7 +189,6 @@
         }, timeout_seconds * 1000);
     }
     
-    // This function updates the player's data when they receive a unit after requesting it
     function update_receiver_data(data) {
         mydata.balance = data['to_balance'];
         mydata.inventory = data['to_inventory'];
@@ -251,7 +198,6 @@
         update_display();
     }
     
-    // This function updates the player's data when they send a unit to their successor
     function update_sender_data(data) {
         mydata.balance = data['from_balance'];
         mydata.inventory = data['from_inventory'];
@@ -262,7 +208,6 @@
         update_display();
     }
     
-    // This function updates the display of the player's data on the page
     function update_display() {
         inventoryDisplay.innerHTML = mydata.inventory;
         balanceDisplay.innerHTML = mydata.balance.toFixed(0) + " ECU";
@@ -272,10 +217,6 @@
         // totalProfitDisplay.innerHTML = mydata.total_profit.toFixed(0);
     }
 
-    // When the server sends an status update, this function is called
-    // It checks if the player is the sender or receiver of the unit and updates the data accordingly
-    // It also highlights the predecessor and successor info boxes to indicate a transfer has occurred
-    // If the chain is shown, it handles highlighting there
     function live_update_status(data) {
         // I receive the unit
         if (data['to_player'] === js_vars.own_id_in_group) {
@@ -316,9 +257,6 @@
         }
     }
     
-    // This function sends a request to the server to request a certain number of units
-    // In this game, the number of units is always 1, but this function is written to be flexible
-    // so that it can be easily modified in the future if needed
     function send_request(units) {
         liveSend({
             type: 'request',
@@ -328,7 +266,18 @@
         });
     }
     
-    // This function updates the inventories displayed in the chain diagram
+    function send_init() {
+        let current_time = new Date().getTime();
+        let start_time_proposal = current_time + 5000;
+        liveSend({
+            type: 'init',
+        });
+        liveSend({
+            type: 'start_time_proposal',
+            start_time: start_time_proposal
+        });
+    }
+    
     function update_inventories(data) {
         // console.log("Updating inventories: ", data);
         for (let player_id in data) {
@@ -338,7 +287,29 @@
         }
     }
     
-    // If a start time decision is received, this function prepares the start timer
+    function liveRecv(data) {
+        // console.log("Received data: ", data["type"]);
+        if (data['type'] === 'status') {
+            live_update_status(data['data']);
+        }
+        if (data['type'] === 'start_time_decision') {
+            start_time_received(data.start_time);
+        } 
+        if (data['type'] === 'init_response') {
+            mydata.balance = data['data']['balance'];
+            mydata.inventory = data['data']['inventory'];
+            mydata.total_cost = data['data']['cost'];
+            mydata.total_revenue = data['data']['revenue'];
+            mydata.total_profit = data['data']['profit'];
+            mydata.total_items_sold = data['data']['items_sold'];
+            update_display();
+            // console.log(data['data']['chain_inventory']);
+            if (js_vars.show_chain) {
+                update_inventories(data['data']["chain_inventory"]);
+            }
+        }
+    }
+    
     function start_time_received(start_time) {
         let current_time = new Date().getTime();
         let delay = start_time - current_time;
@@ -346,7 +317,6 @@
         prep_timer(delay);
     }
     
-    // Every second, we recalculate the player's balance based on their inventory and the cost per unit time
     function recalculate_balances() {
         let cost = mydata.inventory * js_vars.inventory_unit_cost_per_second;
         mydata.balance -= cost;
@@ -354,9 +324,6 @@
         mydata.total_profit = mydata.total_revenue - mydata.total_cost;
     }
     
-    // This function automatically sends requests at random intervals based on a normal distribution
-    // The mean and standard deviation of the distribution can be specified
-    // The goal is to have a way to simulate player behavior for testing purposes
     function auto_play_request(mean, stdev) {
         let random = getNormallyDistributedRandomNumber(mean, stdev);
         window.setTimeout(function() {
@@ -365,9 +332,7 @@
         }, random * 1000);
     }
     
-    // This function is the main function that starts the game
-    // It enables the request button and sets up the interval to recalculate balances and update the display
-    // If auto_play is enabled, it starts the auto play function
+    // when ready
     function start_game() {
         requestButton.disabled = false;
         
@@ -381,22 +346,19 @@
         }
     }
     
-    
-    // When the request button is clicked, we send a request and disable the button for a timeout period
-    requestButton.addEventListener("click", function () {
-        send_request(1);
-        timeout_request_button(js_vars.request_button_timeout_seconds);
-    });
-    
-    // This draws the chain diagram if it is enabled
     const circle = document.getElementById("id_circle");
     if (js_vars.show_chain) {
         draw_rows(circle, js_vars.num_players, js_vars.own_id_in_group);
     }
     
-    // Initialize
-    // Once the page is fully loaded, we start the initialization process
+    requestButton.addEventListener("click", function () {
+        send_request(1);
+        timeout_request_button(js_vars.request_button_timeout_seconds);
+    });
+
+    // initialize
     send_init();
+
     
 </script>
 
